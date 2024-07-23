@@ -1,0 +1,39 @@
+SCREENS:
+
+[Today]
+    - Should prompt to do the daily exercise plan, but if none exists some instructions on how to create one
+
+[Exercises]
+    - List of all exercises in the app, with a button to add one
+
+
+[Workouts]
+    - List of workouts with a button to add one. If no exercises exist then some explanation
+
+
+
+DATA:
+
+  List Of Exercises - Each exercise would be its own file which should contain
+    1) Exercise definition JSON
+          {
+            "name" : String,
+            steps : [
+                {
+                    reps: number_of_repeats.
+                    [
+                        {
+                            instruction-text: "Get a resistance band under your right foot",
+                            instruction-audio: audio-file
+                            instruction-slide: image-file
+                            instruction-video: video-file
+                        }
+                    ]
+                }
+            ]
+          }
+    2) Media images or video that are associated with workout steps
+
+  We can import or export exercise files.
+
+  An internal list of exercise files is maintained when we import or add

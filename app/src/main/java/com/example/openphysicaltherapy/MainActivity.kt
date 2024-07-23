@@ -11,15 +11,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.List
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.List
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -65,7 +64,10 @@ class MainActivity : ComponentActivity() {
     ) {
         Scaffold(
             bottomBar = {
-                BottomAppBar(modifier = Modifier){
+                BottomAppBar(
+                    modifier = Modifier,
+                    containerColor = MaterialTheme.colorScheme.background)
+                {
                     BottomNavigationBar(navController = navController)
                 }
             }
@@ -100,13 +102,24 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        NavigationBar {
+        NavigationBar(
+            containerColor = MaterialTheme.colorScheme.background
+        ) {
             items.forEachIndexed { index, item ->
                 NavigationBarItem(
                     alwaysShowLabel = true,
-                    icon = { Icon(ImageVector.vectorResource(item.icon!!), contentDescription = item.title) },
+                    icon = { Icon(ImageVector.vectorResource(item.icon), contentDescription = item.title) },
                     label = { Text(item.title) },
                     selected = selectedItem == index,
+                    colors = NavigationBarItemColors(
+                        selectedIconColor = MaterialTheme.colorScheme.onSurface,
+                        selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurface,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedIndicatorColor = MaterialTheme.colorScheme.onSecondary
+                    ),
                     onClick = {
                         selectedItem = index
                         currentRoute = item.route
@@ -139,36 +152,58 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
 
-    @Composable
-    fun HomeScreen() {
-        CenterText(text = "Today")
-    }
-
-    @Composable
-    fun ExercisesScreen() {
-        CenterText(text = "Exercises")
-    }
-
-    @Composable
-    fun WorkoutsScreen() {
-        CenterText(text = "Workouts")
-    }
-
-    @Composable
-    fun CenterText(text: String) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = text, fontSize = 32.sp)
-        }
+@Composable
+fun CenterText(text: String) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = text, fontSize = 32.sp)
     }
 }
 
-sealed class NavigationItem(var route: String, val icon: Int?, var title: String) {
-    data object Today : NavigationItem("Today", R.drawable.icon_stretch, "Today")
+@Composable
+fun HomeScreen() {
+    CenterText(text = "Today")
+}
+
+@Composable
+fun ExercisesScreen() {
+    Scaffold(
+        floatingActionButton = {
+            MultiFloatingActionButton(
+                modifier = Modifier,
+                items = listOf(
+                    FloatingButtonItem(Icons.Filled.Create, "Create Exercise", onClick = {
+
+                    }),
+                    FloatingButtonItem(ImageVector.vectorResource(R.drawable.icon_import), "Import Exercise File", onClick = {
+
+                    })
+                ),
+                icon = Icons.Filled.Add,
+            )
+        },
+    ){ innerPadding->
+        Column(
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            Text("List goes here")
+        }
+    }
+
+}
+
+@Composable
+fun WorkoutsScreen() {
+    CenterText(text = "Workouts")
+}
+
+sealed class NavigationItem(var route: String, val icon: Int, var title: String) {
+    data object Today : NavigationItem("Today", R.drawable.arm_flex_outline, "Today")
     data object Exercises : NavigationItem("Exercises", R.drawable.icon_stretch, "Exercises")
     data object Workouts : NavigationItem("Workouts", R.drawable.icon_workouts, "Workouts")
 }
