@@ -1,10 +1,18 @@
 package com.example.openphysicaltherapy
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.widget.EditText
+import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,15 +48,61 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import kotlinx.coroutines.launch
+
+class GetCustomContents(): ActivityResultContract<String, List<@JvmSuppressWildcards Uri>>() {
+
+    override fun createIntent(context: Context, input: String): Intent {
+        return Intent(Intent.ACTION_GET_CONTENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = input //The input option es the MIME Type that you need to use
+            //putExtra(Intent.EXTRA_LOCAL_ONLY, true) //Return data on the local device
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
+                .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+    }
+
+    override fun parseResult(resultCode: Int, intent: Intent?): List<Uri> {
+        return intent.takeIf {
+            resultCode == Activity.RESULT_OK
+        }?.getClipDataUris() ?: emptyList()
+    }
+
+    internal companion object {
+
+        //Collect all Uris from files selected
+        internal fun Intent.getClipDataUris(): List<Uri> {
+            // Use a LinkedHashSet to maintain any ordering that may be
+            // present in the ClipData
+            val resultSet = LinkedHashSet<Uri>()
+            data?.let { data ->
+                resultSet.add(data)
+            }
+            val clipData = clipData
+            if (clipData == null && resultSet.isEmpty()) {
+                return emptyList()
+            } else if (clipData != null) {
+                for (i in 0 until clipData.itemCount) {
+                    val uri = clipData.getItemAt(i).uri
+                    if (uri != null) {
+                        resultSet.add(uri)
+                    }
+                }
+            }
+            return ArrayList(resultSet)
+        }
+    }
+}
 
 class CreateExerciseActivity : ComponentActivity() {
     private var exercise = Exercise("", steps = mutableListOf(ExerciseStep(1, mutableListOf(
@@ -161,7 +216,13 @@ class CreateExerciseActivity : ComponentActivity() {
     @Composable
     fun ExerciseStepScreen(){
         var numberOfReps by remember { mutableStateOf("1") }
-
+        val filePicker = rememberLauncherForActivityResult(
+            contract = GetCustomContents(isMultiple = true),
+            onResult = { uris ->
+                uris?.forEach { uri ->
+                    Log.d("MainActivity", "uri: $uri")
+                }
+            })
         Column {
             exercise.steps.forEachIndexed { index, step ->
                 TextField(
@@ -221,13 +282,40 @@ class CreateExerciseActivity : ComponentActivity() {
                             }
                         )
                     }
-                    Row {
-                        // TODO:
-                        //   Icon (image, video)
-                        //   Video/Audio+Image file picker
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = ImageVector.vectorResource(id = R.drawable.icon_file_import),
+                            contentDescription = "Import files icon",
+                            modifier = Modifier.padding(start = 10.dp, top=0.dp, end=10.dp, bottom = 0.dp)
+                        )
+                        FileChooser(R.drawable.icon_add_image){
+                            filePicker.launch("image/*", )
+                        }
+                        FileChooser(R.drawable.icon_add_video){
+                            filePicker.launch("video/*", )
+                        }
+                        FileChooser(R.drawable.icon_add_audio) {
+                            filePicker.launch("audio/*", )
+                        }
                     }
                 }
             }
+        }
+    }
+
+    @Composable
+    fun FileChooser( iconResource: Int, filePicker: () -> Unit ){
+        IconButton(
+            onClick = { filePicker() },
+            Modifier
+                .background(MaterialTheme.colorScheme.secondary)
+                .border(5.dp, MaterialTheme.colorScheme.onSecondary)
+
+        ){
+            Icon(ImageVector.vectorResource(iconResource),
+                contentDescription = "Select Image File",
+                tint = MaterialTheme.colorScheme.onSecondary
+
+            )
         }
     }
 }
