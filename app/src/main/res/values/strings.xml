@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">OpenPhysicalTherapy</string>
+    <string name="title_activity_create_exercise">Create Exercise</string>
+    <string name="please_name_exercise">Please name exercise</string>
 </resources>

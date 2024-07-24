@@ -33,7 +33,10 @@ import androidx.compose.ui.unit.dp
 import com.example.openphysicaltherapy.FloatingButtonState.Collapsed
 import com.example.openphysicaltherapy.FloatingButtonState.Expanded
 
-data class FloatingButtonItem(val iconResource: ImageVector, val label: String, val onClick: () -> Unit)
+data class FloatingButtonItem(
+    val iconResource: ImageVector,
+    val label: String,
+    val onClick: () -> Unit)
 
 enum class FloatingButtonState {
     Expanded,
@@ -79,7 +82,6 @@ fun MultiFloatingActionButton(
                 }
             }
         }
-
         // Main FloatingActionButton
         FloatingActionButton(
             onClick = {
@@ -92,7 +94,6 @@ fun MultiFloatingActionButton(
             containerColor = MaterialTheme.colorScheme.background,
             shape = CircleShape
         ) {
-            // Icon for the main FAB with optional rotation based on its state (expanded or collapsed)
             Icon(
                 imageVector = icon,
                 contentDescription = "stringResource(R.string.main_fab_button)",
@@ -115,7 +116,6 @@ fun FloatingActionButtonItem(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Text label for the sub-item displayed in a rounded-corner background
         Text(
             text = item.label,
             style = typography.labelSmall,

@@ -1,5 +1,6 @@
 package com.example.openphysicaltherapy
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -152,6 +154,33 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    @Composable
+    fun ExercisesScreen() {
+        Scaffold(
+            floatingActionButton = {
+                MultiFloatingActionButton(
+                    modifier = Modifier,
+                    items = listOf(
+                        FloatingButtonItem(Icons.Filled.Create, "Create Exercise", onClick = {
+                            startActivity(Intent(this, CreateExerciseActivity::class.java))
+                        }),
+                        FloatingButtonItem(ImageVector.vectorResource(R.drawable.icon_import), "Import Exercise File", onClick = {
+
+                        })
+                    ),
+                    icon = Icons.Filled.Add,
+                )
+            },
+        ){ innerPadding->
+            Column(
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                Text("List goes here")
+            }
+        }
+
+    }
 }
 
 @Composable
@@ -170,32 +199,7 @@ fun HomeScreen() {
     CenterText(text = "Today")
 }
 
-@Composable
-fun ExercisesScreen() {
-    Scaffold(
-        floatingActionButton = {
-            MultiFloatingActionButton(
-                modifier = Modifier,
-                items = listOf(
-                    FloatingButtonItem(Icons.Filled.Create, "Create Exercise", onClick = {
 
-                    }),
-                    FloatingButtonItem(ImageVector.vectorResource(R.drawable.icon_import), "Import Exercise File", onClick = {
-
-                    })
-                ),
-                icon = Icons.Filled.Add,
-            )
-        },
-    ){ innerPadding->
-        Column(
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            Text("List goes here")
-        }
-    }
-
-}
 
 @Composable
 fun WorkoutsScreen() {
