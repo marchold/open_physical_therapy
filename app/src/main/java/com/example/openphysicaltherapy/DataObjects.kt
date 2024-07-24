@@ -9,12 +9,12 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 class ExerciseInstruction(
-    var text:String,
-    var audio:Boolean,
-    var image:Boolean,
-    var video:Boolean,
-    var duration: Int, //In seconds
-    var countdown:Boolean,
+    var text:String = "",
+    var audio:Boolean = false,
+    var image:Boolean = false,
+    var video:Boolean = false,
+    var duration: Int = 10, //In seconds
+    var countdown:Boolean = true,
 )
 
 class ExerciseStep(

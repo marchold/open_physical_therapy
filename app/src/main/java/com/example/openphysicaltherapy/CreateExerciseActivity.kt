@@ -1,6 +1,7 @@
 package com.example.openphysicaltherapy
 
 import android.os.Bundle
+import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -35,14 +37,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import kotlinx.coroutines.launch
 
 class CreateExerciseActivity : ComponentActivity() {
-    private var exercise = Exercise("")
+    private var exercise = Exercise("", steps = mutableListOf(ExerciseStep(1, mutableListOf(
+        ExerciseInstruction()
+    ) )))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +65,7 @@ class CreateExerciseActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun CreateExerciseScreen(){
-        var pageCount by remember { mutableIntStateOf(0)  }
+        var pageCount by remember { mutableIntStateOf(exercise.steps.size) }
         val pagerState = rememberPagerState(pageCount = { pageCount })
         var exerciseName by remember { mutableStateOf("") }
         val coroutineScope = rememberCoroutineScope()
@@ -94,15 +104,19 @@ class CreateExerciseActivity : ComponentActivity() {
                             },
                             label = {
                                 Text(text = stringResource(R.string.please_name_exercise))
-                            }
+                            },
+                            maxLines = 1
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         HorizontalPager(state = pagerState) { page ->
-                            // Our page content
-                            Text(
-                                text = "Page: $page",
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            Column {
+                                Text(
+                                    text = "Step $page",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Center
+                                )
+                                ExerciseStepScreen()
+                            }
                         }
 
                     }
@@ -144,6 +158,78 @@ class CreateExerciseActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    fun ExerciseStepScreen(){
+        var numberOfReps by remember { mutableStateOf("1") }
+
+        Column {
+            exercise.steps.forEachIndexed { index, step ->
+                TextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = numberOfReps,
+                    onValueChange = { newValue ->
+                        if (newValue.isBlank()){
+                            exercise.steps[index].numberOfReps = 0
+                            numberOfReps = ""
+                        }
+                        else {
+                            newValue.toIntOrNull()?.let {
+                                exercise.steps[index].numberOfReps = it
+                                numberOfReps = it.toString()
+                            }
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.NumberPassword
+                    ),
+                    label = {
+                        Text(text = "Number of reps")
+                    },
+                    maxLines = 1
+                )
+                step.instructions.forEachIndexed{ instructionIndex, instruction ->
+                    var instructionText by remember { mutableStateOf("") }
+                    var duration by remember { mutableStateOf("") }
+                    TextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = instructionText,
+                        onValueChange = { newValue ->
+                            instructionText = newValue
+                        },
+                        label = {
+                            Text(text = "Instructional text")
+                        }
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            ImageVector.vectorResource(R.drawable.icon_timer),
+                            contentDescription = "Timer Icon",
+                            modifier = Modifier.padding(start = 10.dp, top=0.dp, end=10.dp, bottom = 0.dp))
+                        TextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = duration,
+                            onValueChange = { newValue ->
+                                duration = newValue
+                            },
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.NumberPassword
+                            ),
+                            label = {
+                                Text(text = "Duration in seconds")
+                            }
+                        )
+                    }
+                    Row {
+                        // TODO:
+                        //   Icon (image, video)
+                        //   Video/Audio+Image file picker
+                    }
+                }
+            }
+        }
+    }
 }
 
 
