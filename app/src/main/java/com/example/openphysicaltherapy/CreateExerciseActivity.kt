@@ -55,7 +55,8 @@ class CreateExerciseActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun CreateExerciseScreen(){
-        val pagerState = rememberPagerState(pageCount = { exercise.steps.size })
+        var pageCount by remember { mutableIntStateOf(0)  }
+        val pagerState = rememberPagerState(pageCount = { pageCount })
         var exerciseName by remember { mutableStateOf("") }
         val coroutineScope = rememberCoroutineScope()
 
@@ -128,10 +129,10 @@ class CreateExerciseActivity : ComponentActivity() {
                             }
                             IconButton(onClick = {
                                 exercise.steps.add(ExerciseStep(0, mutableListOf()))
-                                pagerState.pageCount.inc()
                                 coroutineScope.launch {
-                                    pagerState.animateScrollToPage(exercise.steps.size - 1)
+                                    pagerState.animateScrollToPage(exercise.steps.size-1)
                                 }
+                                pageCount++
                             }) {
                                 Icon(Icons.Filled.Add, contentDescription = "Add Step")
                             }
