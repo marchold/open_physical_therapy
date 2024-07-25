@@ -1,6 +1,7 @@
 package com.example.openphysicaltherapy
 
 import android.content.Context
+import android.net.Uri
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -10,9 +11,9 @@ import java.io.FileOutputStream
 
 class ExerciseInstruction(
     var text:String = "",
-    var audio:Boolean = false,
-    var image:Boolean = false,
-    var video:Boolean = false,
+    var audio: Uri? = null,
+    var image: Uri? = null,
+    var video: Uri? = null,
     var duration: Int = 10, //In seconds
     var countdown:Boolean = true,
 )

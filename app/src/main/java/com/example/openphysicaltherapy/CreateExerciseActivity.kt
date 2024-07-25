@@ -30,6 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,8 +65,7 @@ class GetCustomContents(): ActivityResultContract<String, List<@JvmSuppressWildc
     override fun createIntent(context: Context, input: String): Intent {
         return Intent(Intent.ACTION_GET_CONTENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = input //The input option es the MIME Type that you need to use
-            //putExtra(Intent.EXTRA_LOCAL_ONLY, true) //Return data on the local device
+            type = input
             putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
                 .addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -73,35 +73,37 @@ class GetCustomContents(): ActivityResultContract<String, List<@JvmSuppressWildc
     }
 
     override fun parseResult(resultCode: Int, intent: Intent?): List<Uri> {
-        return intent.takeIf {
-            resultCode == Activity.RESULT_OK
-        }?.getClipDataUris() ?: emptyList()
-    }
-
-    internal companion object {
-
-        //Collect all Uris from files selected
-        internal fun Intent.getClipDataUris(): List<Uri> {
-            // Use a LinkedHashSet to maintain any ordering that may be
-            // present in the ClipData
-            val resultSet = LinkedHashSet<Uri>()
-            data?.let { data ->
-                resultSet.add(data)
-            }
-            val clipData = clipData
-            if (clipData == null && resultSet.isEmpty()) {
-                return emptyList()
-            } else if (clipData != null) {
-                for (i in 0 until clipData.itemCount) {
-                    val uri = clipData.getItemAt(i).uri
-                    if (uri != null) {
-                        resultSet.add(uri)
-                    }
-                }
-            }
-            return ArrayList(resultSet)
+        val result = mutableListOf<Uri>()
+        intent?.data?.let {
+            result.add(it)
         }
+        return result
     }
+
+//    internal companion object {
+//
+//        //Collect all Uris from files selected
+//        internal fun Intent.getClipDataUris(): List<Uri> {
+//            // Use a LinkedHashSet to maintain any ordering that may be
+//            // present in the ClipData
+//            val resultSet = LinkedHashSet<Uri>()
+//            data?.let { data ->
+//                resultSet.add(data)
+//            }
+//            val clipData = clipData
+//            if (clipData == null && resultSet.isEmpty()) {
+//                return emptyList()
+//            } else if (clipData != null) {
+//                for (i in 0 until clipData.itemCount) {
+//                    val uri = clipData.getItemAt(i).uri
+//                    if (uri != null) {
+//                        resultSet.add(uri)
+//                    }
+//                }
+//            }
+//            return ArrayList(resultSet)
+//        }
+//    }
 }
 
 class CreateExerciseActivity : ComponentActivity() {
@@ -216,26 +218,20 @@ class CreateExerciseActivity : ComponentActivity() {
     @Composable
     fun ExerciseStepScreen(){
         var numberOfReps by remember { mutableStateOf("1") }
-        val filePicker = rememberLauncherForActivityResult(
-            contract = GetCustomContents(isMultiple = true),
-            onResult = { uris ->
-                uris?.forEach { uri ->
-                    Log.d("MainActivity", "uri: $uri")
-                }
-            })
+
         Column {
-            exercise.steps.forEachIndexed { index, step ->
+            exercise.steps.forEachIndexed { stepIndex, step ->
                 TextField(
                     modifier = Modifier.fillMaxWidth(),
                     value = numberOfReps,
                     onValueChange = { newValue ->
                         if (newValue.isBlank()){
-                            exercise.steps[index].numberOfReps = 0
+                            exercise.steps[stepIndex].numberOfReps = 0
                             numberOfReps = ""
                         }
                         else {
                             newValue.toIntOrNull()?.let {
-                                exercise.steps[index].numberOfReps = it
+                                exercise.steps[stepIndex].numberOfReps = it
                                 numberOfReps = it.toString()
                             }
                         }
@@ -288,24 +284,46 @@ class CreateExerciseActivity : ComponentActivity() {
                             modifier = Modifier.padding(start = 10.dp, top=0.dp, end=10.dp, bottom = 0.dp)
                         )
                         FileChooser(R.drawable.icon_add_image){
-                            filePicker.launch("image/*", )
+                            rememberLauncherForActivityResult(
+                                contract = GetCustomContents(),
+                                onResult = { uris ->
+                                    uris.firstOrNull()?.let {
+                                        exercise.steps[stepIndex].instructions[instructionIndex].image = it
+                                    }
+                                }).launch("image/*", )
                         }
                         FileChooser(R.drawable.icon_add_video){
-                            filePicker.launch("video/*", )
+                            rememberLauncherForActivityResult(
+                                contract = GetCustomContents(),
+                                onResult = { uris ->
+                                    uris.firstOrNull()?.let {
+                                        exercise.steps[stepIndex].instructions[instructionIndex].video = it
+                                    }
+                                }).launch("video/*", )
                         }
                         FileChooser(R.drawable.icon_add_audio) {
-                            filePicker.launch("audio/*", )
+                            rememberLauncherForActivityResult(
+                                contract = GetCustomContents(),
+                                onResult = { uris ->
+                                    uris.firstOrNull()?.let {
+                                        exercise.steps[stepIndex].instructions[instructionIndex].audio = it
+                                    }
+                                }).launch("audio/*", )
                         }
                     }
                 }
+            }
+            Button(onClick = { /*TODO*/ }) {
+                Text("Add Instruction")
             }
         }
     }
 
     @Composable
-    fun FileChooser( iconResource: Int, filePicker: () -> Unit ){
+    fun FileChooser( iconResource: Int, filePicker: @Composable () -> Unit ){
+        var isClicked by remember{ mutableStateOf(false) }
         IconButton(
-            onClick = { filePicker() },
+            onClick = { isClicked = true},
             Modifier
                 .background(MaterialTheme.colorScheme.secondary)
                 .border(5.dp, MaterialTheme.colorScheme.onSecondary)
@@ -317,28 +335,10 @@ class CreateExerciseActivity : ComponentActivity() {
 
             )
         }
+        if (isClicked){
+            isClicked = false;
+            filePicker()
+        }
     }
 }
 
-
-/*
-class ExerciseInstruction(
-    var text:String,
-    var audio:Boolean,
-    var image:Boolean,
-    var video:Boolean,
-    var duration: Int, //In seconds
-    var countdown:Boolean,
-)
-
-class ExerciseStep(
-    var numberOfReps:Int,
-    var instructions: MutableList<ExerciseInstruction>
-)
-
-class Exercise(
-    var name:String,
-    var icon:Boolean,
-    var steps:MutableList<ExerciseStep>
-){
- */
