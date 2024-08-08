@@ -32,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -163,7 +162,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier,
                     items = listOf(
                         FloatingButtonItem(Icons.Filled.Create, "Create Exercise", onClick = {
-                            startActivity(Intent(this, CreateExerciseActivity::class.java))
+                            startActivity(Intent(this, EditExerciseActivity::class.java))
                         }),
                         FloatingButtonItem(ImageVector.vectorResource(R.drawable.icon_import), "Import Exercise File", onClick = {
 

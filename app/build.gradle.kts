@@ -59,6 +59,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.moshi)
     implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.runtime.livedata)
+    implementation(libs.material3)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

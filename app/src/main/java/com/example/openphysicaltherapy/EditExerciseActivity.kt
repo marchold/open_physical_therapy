@@ -1,10 +1,10 @@
 package com.example.openphysicaltherapy
 
 import android.os.Bundle
-import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,13 +13,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,28 +32,24 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import kotlinx.coroutines.launch
 
-class CreateExerciseActivity : ComponentActivity() {
-    private var exercise = Exercise("", steps = mutableListOf(ExerciseStep(1, mutableListOf(
-        ExerciseInstruction()
-    ) )))
+class EditExerciseActivity() : ComponentActivity() {
+    private val exercise by viewModels<Exercise>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,12 +59,13 @@ class CreateExerciseActivity : ComponentActivity() {
         }
     }
 
+    @Preview(showSystemUi = true)
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun CreateExerciseScreen(){
-        var pageCount by remember { mutableIntStateOf(exercise.steps.size) }
-        val pagerState = rememberPagerState(pageCount = { pageCount })
-        var exerciseName by remember { mutableStateOf("") }
+
+        val name by exercise.name.observeAsState()
+        val pagerState = PagerState { exercise.stepsFlow.value.size }
         val coroutineScope = rememberCoroutineScope()
 
         OpenPhysicalTherapyTheme {
@@ -77,7 +75,7 @@ class CreateExerciseActivity : ComponentActivity() {
                         title = { Text(getString(R.string.title_activity_create_exercise)) },
                         actions = {
                             IconButton(onClick = {
-                                exercise.save(this@CreateExerciseActivity)
+                                //exercise.save(this@CreateExerciseActivity)
                                 finish()
                             }) {
                                 Icon(Icons.Filled.Done, contentDescription = "Save Exercise Button")
@@ -97,25 +95,24 @@ class CreateExerciseActivity : ComponentActivity() {
                         Spacer(modifier = Modifier.height(10.dp))
                         TextField(
                             modifier = Modifier.fillMaxWidth(),
-                            value = exerciseName,
+                            value = name!!,
                             onValueChange = {
-                                exerciseName = it
-                                exercise.name = it
+                                exercise.updateName(it)
                             },
                             label = {
-                                Text(text = stringResource(R.string.please_name_exercise))
+                                Text(text = stringResource(R.string.name_exercise))
                             },
                             maxLines = 1
                         )
                         Spacer(modifier = Modifier.height(10.dp))
-                        HorizontalPager(state = pagerState) { page ->
+                        HorizontalPager(state = pagerState ) { page ->
                             Column {
                                 Text(
                                     text = "Step $page",
                                     modifier = Modifier.fillMaxWidth(),
                                     textAlign = TextAlign.Center
                                 )
-                                ExerciseStepScreen()
+                                ExerciseStepScreen(page)
                             }
                         }
 
@@ -142,11 +139,10 @@ class CreateExerciseActivity : ComponentActivity() {
                                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next Step")
                             }
                             IconButton(onClick = {
-                                exercise.steps.add(ExerciseStep(0, mutableListOf()))
+                                exercise.addStep()
                                 coroutineScope.launch {
-                                    pagerState.animateScrollToPage(exercise.steps.size-1)
+                                    pagerState.animateScrollToPage((exercise.steps.size) -1)
                                 }
-                                pageCount++
                             }) {
                                 Icon(Icons.Filled.Add, contentDescription = "Add Step")
                             }
@@ -159,98 +155,79 @@ class CreateExerciseActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ExerciseStepScreen(){
-        var numberOfReps by remember { mutableStateOf("1") }
-
+    fun ExerciseStepScreen(page: Int) {
+       // val steps by exercise.steps.observeAsState()
+        Text(text = "haha")
         Column {
-            exercise.steps.forEachIndexed { index, step ->
-                TextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    value = numberOfReps,
-                    onValueChange = { newValue ->
-                        if (newValue.isBlank()){
-                            exercise.steps[index].numberOfReps = 0
-                            numberOfReps = ""
-                        }
-                        else {
-                            newValue.toIntOrNull()?.let {
-                                exercise.steps[index].numberOfReps = it
-                                numberOfReps = it.toString()
-                            }
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.NumberPassword
-                    ),
-                    label = {
-                        Text(text = "Number of reps")
-                    },
-                    maxLines = 1
-                )
-                step.instructions.forEachIndexed{ instructionIndex, instruction ->
-                    var instructionText by remember { mutableStateOf("") }
-                    var duration by remember { mutableStateOf("") }
+            val numberOfReps by exercise.steps[page].numberOfReps.observeAsState()
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = numberOfReps.toString(),
+                onValueChange = { newValue ->
+                    var newIntValue = 0
+                    newValue.toIntOrNull()?.let {
+                        newIntValue = it
+                    }
+                    exercise.steps[page].updateNumberOfReps(newIntValue)
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.NumberPassword
+                ),
+                label = {
+                    Text(text = "Number of reps")
+                },
+                maxLines = 1
+            )
+            exercise.steps[page].slides.value?.forEachIndexed{ slideIndex, slide ->
+                val instructionText by slide.text.observeAsState()
+                val duration by slide.duration.observeAsState()
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Outlined.Info,
+                        contentDescription = "Information Icon",
+                        modifier = Modifier.padding(start = 10.dp, top=0.dp, end=10.dp, bottom = 0.dp))
                     TextField(
                         modifier = Modifier.fillMaxWidth(),
-                        value = instructionText,
+                        value = instructionText!!,
                         onValueChange = { newValue ->
-                            instructionText = newValue
+                            slide.updateText(newValue)
                         },
                         label = {
                             Text(text = "Instructional text")
                         }
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            ImageVector.vectorResource(R.drawable.icon_timer),
-                            contentDescription = "Timer Icon",
-                            modifier = Modifier.padding(start = 10.dp, top=0.dp, end=10.dp, bottom = 0.dp))
-                        TextField(
-                            modifier = Modifier.fillMaxWidth(),
-                            value = duration,
-                            onValueChange = { newValue ->
-                                duration = newValue
-                            },
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                keyboardType = KeyboardType.NumberPassword
-                            ),
-                            label = {
-                                Text(text = "Duration in seconds")
-                            }
-                        )
-                    }
-                    Row {
-                        // TODO:
-                        //   Icon (image, video)
-                        //   Video/Audio+Image file picker
-                    }
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        ImageVector.vectorResource(R.drawable.icon_timer),
+                        contentDescription = "Timer Icon",
+                        modifier = Modifier.padding(start = 10.dp, top=0.dp, end=10.dp, bottom = 0.dp))
+                    TextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = duration.toString(),
+                        onValueChange = { newValue ->
+                            slide.updateDuration(newValue.toInt())
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.NumberPassword
+                        ),
+                        label = {
+                            Text(text = "Duration in seconds")
+                        }
+                    )
+                }
+                Row {
+                    // TODO:
+                    //   Icon (image, video)
+                    //   Video/Audio+Image file picker
                 }
             }
+
         }
     }
 }
 
-
-/*
-class ExerciseInstruction(
-    var text:String,
-    var audio:Boolean,
-    var image:Boolean,
-    var video:Boolean,
-    var duration: Int, //In seconds
-    var countdown:Boolean,
-)
-
-class ExerciseStep(
-    var numberOfReps:Int,
-    var instructions: MutableList<ExerciseInstruction>
-)
-
-class Exercise(
-    var name:String,
-    var icon:Boolean,
-    var steps:MutableList<ExerciseStep>
-){
- */
