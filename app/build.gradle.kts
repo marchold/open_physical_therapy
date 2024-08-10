@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.material3)
+    implementation(libs.ui)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

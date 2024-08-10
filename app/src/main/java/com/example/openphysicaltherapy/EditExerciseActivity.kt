@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,20 +23,27 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -45,6 +53,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
 import com.example.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import kotlinx.coroutines.launch
 
@@ -154,30 +163,23 @@ class EditExerciseActivity() : ComponentActivity() {
         }
     }
 
+
+
+
     @Composable
     fun ExerciseStepScreen(page: Int) {
        // val steps by exercise.steps.observeAsState()
-        Text(text = "haha")
         Column {
-            val numberOfReps by exercise.steps[page].numberOfReps.observeAsState()
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = numberOfReps.toString(),
-                onValueChange = { newValue ->
-                    var newIntValue = 0
-                    newValue.toIntOrNull()?.let {
-                        newIntValue = it
-                    }
-                    exercise.steps[page].updateNumberOfReps(newIntValue)
-                },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.NumberPassword
-                ),
-                label = {
-                    Text(text = "Number of reps")
-                },
-                maxLines = 1
-            )
+            NumberPickerTextField(
+                intLiveData = exercise.steps[page].numberOfReps,
+                icon = ImageVector.vectorResource(R.drawable.icon_repeat),
+                minimumValue = 1,
+                maximumValue = 20,
+                "Number of reps"
+            ) {
+                exercise.steps[page].updateNumberOfReps(it)
+            }
+
             exercise.steps[page].slides.value?.forEachIndexed{ slideIndex, slide ->
                 val instructionText by slide.text.observeAsState()
                 val duration by slide.duration.observeAsState()
@@ -199,27 +201,36 @@ class EditExerciseActivity() : ComponentActivity() {
                         }
                     )
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+                NumberPickerTextField(
+                    intLiveData = slide.duration,
+                    icon = ImageVector.vectorResource(R.drawable.icon_timer),
+                    minimumValue = 3,
+                    maximumValue = 500,
+                    title = "Duration in seconds"
                 ) {
-                    Icon(
-                        ImageVector.vectorResource(R.drawable.icon_timer),
-                        contentDescription = "Timer Icon",
-                        modifier = Modifier.padding(start = 10.dp, top=0.dp, end=10.dp, bottom = 0.dp))
-                    TextField(
-                        modifier = Modifier.fillMaxWidth(),
-                        value = duration.toString(),
-                        onValueChange = { newValue ->
-                            slide.updateDuration(newValue.toInt())
-                        },
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.NumberPassword
-                        ),
-                        label = {
-                            Text(text = "Duration in seconds")
-                        }
-                    )
+                    slide.updateDuration(it)
                 }
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    Icon(
+//                        ImageVector.vectorResource(R.drawable.icon_timer),
+//                        contentDescription = "Timer Icon",
+//                        modifier = Modifier.padding(start = 10.dp, top=0.dp, end=10.dp, bottom = 0.dp))
+//                    TextField(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        value = duration.toString(),
+//                        onValueChange = { newValue ->
+//                            slide.updateDuration(newValue.toInt())
+//                        },
+//                        keyboardOptions = KeyboardOptions.Default.copy(
+//                            keyboardType = KeyboardType.NumberPassword
+//                        ),
+//                        label = {
+//                            Text(text = )
+//                        }
+//                    )
+//                }
                 Row {
                     // TODO:
                     //   Icon (image, video)
@@ -231,3 +242,9 @@ class EditExerciseActivity() : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BottomSheetLayout() {
+
+
+}
