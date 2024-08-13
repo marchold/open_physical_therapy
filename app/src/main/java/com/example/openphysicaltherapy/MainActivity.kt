@@ -10,34 +10,34 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,18 +45,24 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+    }
+
+    override fun onResume() {
+        super.onResume()
         setContent {
             val navController = rememberNavController()
             OpenPhysicalTherapyTheme {
@@ -167,8 +173,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
+
+
     @Composable
     fun ExercisesScreen() {
+        val exercisesState = remember { ExerciseListItem.listOfExercises(this) }
+        LaunchedEffect(Unit) {
+            exercisesState.clear()
+            exercisesState.addAll(ExerciseListItem.listOfExercises(this@MainActivity))
+        }
         Scaffold(
             floatingActionButton = {
                 MultiFloatingActionButton(
@@ -184,14 +198,40 @@ class MainActivity : ComponentActivity() {
                     icon = Icons.Filled.Add,
                 )
             },
-        ){ innerPadding->
-            Column(
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                Text("List goes here")
+        ) { innerPadding ->
+            Column {
+                Row(
+                    Modifier
+                        .padding(0.dp, 50.dp, 0.dp, 0.dp)
+                        .fillMaxWidth()) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(text = "List of exercises".uppercase())
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+                HorizontalDivider(thickness = 3.dp)
+                LazyColumn{
+                    items(exercisesState.size) { index ->
+                        Row(modifier = Modifier
+                            .height(55.dp)
+                            .padding(15.dp, 0.dp, 0.dp, 0.dp)
+                            .fillMaxWidth()
+                            .clickable
+                            {
+                                Intent(this@MainActivity, EditExerciseActivity::class.java).apply {
+                                    this.putExtra("EditExercise", exercisesState[index].name )
+                                    startActivity(this)
+                                }
+
+                            },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(text = exercisesState[index].name)
+                        }
+                        HorizontalDivider()
+                    }
+                }
             }
         }
-
     }
 }
 

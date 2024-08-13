@@ -8,8 +8,6 @@ import androidx.lifecycle.ViewModel
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -37,15 +35,15 @@ class InstructionalSlide:ViewModel(){
 }
 
 class ExerciseStep:ViewModel() {
-    private val _numberOfReps = MutableLiveData<Int>(0)
+    private val _numberOfReps = MutableLiveData<Int>(1)
     val numberOfReps: LiveData<Int> = _numberOfReps
     fun updateNumberOfReps(newValue:Int){
         _numberOfReps.value = newValue
     }
 
     val slides = mutableStateListOf(InstructionalSlide())
-    private val _slidesStateFlow = MutableStateFlow(slides)
-    val slidesFlow: StateFlow<List<InstructionalSlide>> get() = _slidesStateFlow
+    //private val _slidesStateFlow = MutableStateFlow(slides)
+    //val slidesFlow: StateFlow<List<InstructionalSlide>> get() = _slidesStateFlow
 
     fun addSlides(){
         slides.add(InstructionalSlide())
@@ -59,8 +57,8 @@ class ExerciseStep:ViewModel() {
 class Exercise: ViewModel() {
 
     val steps = mutableStateListOf(ExerciseStep())
-    private val _stepsStateFlow = MutableStateFlow(steps)
-    val stepsFlow: StateFlow<List<ExerciseStep>> get() = _stepsStateFlow
+    //private val _stepsStateFlow = MutableStateFlow(steps)
+    //val stepsFlow: StateFlow<List<ExerciseStep>> get() = _stepsStateFlow
     fun addStep(){
         steps.add(ExerciseStep())
     }
@@ -75,39 +73,72 @@ class Exercise: ViewModel() {
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val jsonAdapter: JsonAdapter<Exercise> = moshi.adapter(Exercise::class.java)
         val json: String = jsonAdapter.toJson(this)
-        FileOutputStream(file(context, name.value!!)).use {
+        val outputFile = file(context, name.value!!)
+        if (!outputFile.exists()){
+
+        }
+        FileOutputStream(outputFile).use {
             it.write(json.toByteArray())
         }
+
+    }
+
+    fun load(context:Context, name:String) {
+        val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+        val jsonAdapter: JsonAdapter<Exercise> = moshi.adapter(Exercise::class.java)
+        val json = FileInputStream(file(context, name))
+            .bufferedReader()
+            .use {
+                it.readText()
+            }
+        val exercise = jsonAdapter.fromJson(json)
+        this._name.value = exercise?.name?.value
+        this.steps.addAll(exercise?.steps!!)
     }
 
     companion object {
-        fun load(context:Context, name:String):Exercise? {
-            val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-            val jsonAdapter: JsonAdapter<Exercise> = moshi.adapter(Exercise::class.java)
-            val json = FileInputStream(file(context, name))
-                .bufferedReader()
-                .use {
-                    it.readText()
-                }
-            val exercise = jsonAdapter.fromJson(json)
-            return exercise
-        }
+
         private fun file(context: Context, name: String):File{
             val path = File(File(context.filesDir, "exercises"), name)
             if (!path.exists()) path.mkdirs()
             return File(path, "${name}-index.json")
         }
-        fun listOfExercises(context: Context):MutableList<String>{
+
+    }
+}
+
+data class ExerciseListItem(val name: String){
+    companion object {
+        private val listItems = mutableStateListOf<ExerciseListItem>()
+        fun listOfExercises(context: Context): MutableList<ExerciseListItem> {
             val path = File(context.filesDir, "exercises")
-            if (!path.exists()) return emptyList<String>().toMutableList()
+            if (!path.exists()) return mutableListOf()
             val exerciseFiles = path.listFiles()
-            val results = emptyList<String>().toMutableList()
+            listItems.clear()
             exerciseFiles?.forEach {
                 val name = it.name
-                results.add(name)
+                listItems.add(ExerciseListItem(name))
             }
-            return results
+            return listItems
+        }
+        fun addExercise(name:String){
+            listItems.add(ExerciseListItem(name))
         }
     }
 }
 
+//
+//private val _ExerciseList_itemList = mutableStateListOf<ExerciseListItem>()
+//val exerciseListItemList: List<ExerciseListItem> = _ExerciseList_itemList
+//
+////fun updateItems() {
+////    viewModelScope.launch {
+////        _itemList.addAll(itemRepository.getItems())
+////    }
+////}
+//
+//fun updateOneItem(newVal:Int){
+//    val index = _ExerciseList_itemList.indexOf(item)
+//    _ExerciseList_itemList[index] = _ExerciseList_itemList[index].copy(weight = newVal)
+//}
+//

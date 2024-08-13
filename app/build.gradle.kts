@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.example.openphysicaltherapy"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.openphysicaltherapy"
         minSdk = 30
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.material3)
     implementation(libs.ui)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
