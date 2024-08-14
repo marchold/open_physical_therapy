@@ -75,7 +75,7 @@ class Exercise: ViewModel() {
         val json: String = jsonAdapter.toJson(this)
         val outputFile = file(context, name.value!!)
         if (!outputFile.exists()){
-
+            ExerciseListItem.addExercise(name.value!!)
         }
         FileOutputStream(outputFile).use {
             it.write(json.toByteArray())
@@ -92,7 +92,7 @@ class Exercise: ViewModel() {
                 it.readText()
             }
         val exercise = jsonAdapter.fromJson(json)
-        this._name.value = exercise?.name?.value
+        this._name.value = name
         this.steps.addAll(exercise?.steps!!)
     }
 
@@ -120,6 +120,13 @@ data class ExerciseListItem(val name: String){
                 listItems.add(ExerciseListItem(name))
             }
             return listItems
+        }
+        fun deleteExercise(context: Context, name:String){
+            var path = File(context.filesDir, "exercises")
+            path = File(path,name)
+            if (!path.exists()) return
+            path.deleteRecursively()
+            listItems.removeIf { it.name == name }
         }
         fun addExercise(name:String){
             listItems.add(ExerciseListItem(name))

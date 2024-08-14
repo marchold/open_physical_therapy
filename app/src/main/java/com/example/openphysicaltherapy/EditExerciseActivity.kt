@@ -115,7 +115,7 @@ class EditExerciseActivity() : ComponentActivity() {
                                 }
                                 if (!isError) {
                                     exercise.save(this@EditExerciseActivity)
-                                    ExerciseListItem.addExercise(exercise.name.value!!)
+                                   // ExerciseListItem.addExercise(exercise.name.value!!)
                                     finish()
                                 }
                             }) {
