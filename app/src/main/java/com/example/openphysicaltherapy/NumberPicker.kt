@@ -20,6 +20,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -32,7 +33,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.LiveData
 import kotlinx.coroutines.launch
 
 @Composable
@@ -61,14 +61,14 @@ fun NumberPicker(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NumberPickerTextField(
-    intLiveData: LiveData<Int>,
+    intLiveData: MutableState<Int>,
     icon: ImageVector,
     minimumValue:Int,
     maximumValue:Int,
     title:String,
     onNumberSelected:(Int)->Unit)
 {
-    val valueState by intLiveData.observeAsState()
+   // val valueState by intLiveData.observeAsState()
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -80,13 +80,15 @@ fun NumberPickerTextField(
             icon,
             contentDescription = "$title Icon",
             modifier = Modifier.padding(start = 10.dp, top=0.dp, end=10.dp, bottom = 0.dp))
-        Box(modifier = Modifier.fillMaxWidth().clickable {
-            if (!showBottomSheet){
-                showBottomSheet = true
-            }
-        }) {
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                if (!showBottomSheet) {
+                    showBottomSheet = true
+                }
+            }) {
             TextField(
-                value = valueState.toString(),
+                value = intLiveData.value.toString(),
                 onValueChange = { },
                 enabled = false,
                 readOnly = true,
@@ -137,7 +139,7 @@ fun NumberPickerTextField(
             }
             NumberPicker(
                 onNumberSelected = onNumberSelected,
-                value = intLiveData.value ?: minimumValue,
+                value = intLiveData.value!!,
                 minimumValue = minimumValue,
                 maximumValue = maximumValue
             )

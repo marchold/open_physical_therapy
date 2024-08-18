@@ -281,8 +281,6 @@ class MainActivity : ComponentActivity() {
                 }
                 HorizontalDivider(thickness = 3.dp)
                 LazyColumn{
-
-
                     items(exercisesState.size) { index ->
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = {
