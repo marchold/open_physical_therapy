@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".OpenPhysicalTherapyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -13,14 +14,13 @@
         android:theme="@style/Theme.OpenPhysicalTherapy"
         tools:targetApi="31">
         <activity
-            android:name=".EditExerciseActivity"
+            android:name=".EditExercise.EditExerciseActivity"
             android:exported="false"
             android:label="@string/title_activity_create_exercise"
             android:theme="@style/Theme.OpenPhysicalTherapy" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.OpenPhysicalTherapy">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
