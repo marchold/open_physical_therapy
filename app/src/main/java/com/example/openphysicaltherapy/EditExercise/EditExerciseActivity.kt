@@ -40,12 +40,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.openphysicaltherapy.Data.ExerciseListItem
+import com.example.openphysicaltherapy.Data.ExerciseRepository
 import com.example.openphysicaltherapy.R
 import com.example.openphysicaltherapy.Widgets.actionBarColors
 import com.example.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
@@ -70,8 +71,7 @@ class EditExerciseActivity() : ComponentActivity() {
     fun EditExerciseView(exerciseToEdit: String?) {
         val exerciseViewModel = hiltViewModel<EditExerciseViewModel>()
         exerciseToEdit?.let {
-            val context = LocalContext.current
-            exerciseViewModel.load(context, it)
+            exerciseViewModel.load(it)
         }
 
         val exerciseSteps = exerciseViewModel.getExerciseSteps()
@@ -79,8 +79,11 @@ class EditExerciseActivity() : ComponentActivity() {
         val nameState by exerciseViewModel.name.observeAsState()
 
         val coroutineScope = rememberCoroutineScope()
-        var isExerciseNameError by remember { mutableStateOf(false) }
-        var isSaveButtonEnabled by remember { mutableStateOf(false) }
+        var isExerciseNameInvalid by remember { mutableStateOf(false) }
+        var isExerciseDuplicateError by remember { mutableStateOf(false) }
+        var isSaveButtonEnabled by remember { mutableStateOf(
+            (exerciseViewModel.name.value?.length ?: 0) > 0
+        ) }
         val showConfirmDiscardAlert = remember { mutableStateOf( false ) }
 
         if (showConfirmDiscardAlert.value){
@@ -105,15 +108,8 @@ class EditExerciseActivity() : ComponentActivity() {
                                 Icon(Icons.Filled.Close, contentDescription = "Discard Changes Button")
                             }
                             IconButton(onClick = {
-                                var isError = false
-                                if ((exerciseViewModel.name.value?.length ?: 0) == 0){
-                                    isExerciseNameError = true
-                                    isError = true
-                                }
-                                if (!isError) {
-                                    exerciseViewModel.save(this@EditExerciseActivity)
-                                    finish()
-                                }
+                                exerciseViewModel.save()
+                                finish()
                             },
                                 enabled = isSaveButtonEnabled)
                             {
@@ -130,12 +126,18 @@ class EditExerciseActivity() : ComponentActivity() {
                             modifier = Modifier.fillMaxWidth(),
                             value = nameState!!,
                             onValueChange = {
-                                if (it.length == 0){
-                                    isExerciseNameError = true
+                                isSaveButtonEnabled = true
+                                if (it.isBlank()){
+                                    isExerciseNameInvalid = true
                                     isSaveButtonEnabled = false
                                 }else {
-                                    isExerciseNameError = false
-                                    isSaveButtonEnabled = true
+                                    isExerciseNameInvalid = false
+                                }
+                                if (exerciseViewModel.isExerciseNameUnique(it)){
+                                    isExerciseDuplicateError = false
+                                }else{
+                                    isExerciseDuplicateError = true
+                                    isSaveButtonEnabled = false
                                 }
                                 exerciseViewModel.updateName(it)
                             },
@@ -144,8 +146,11 @@ class EditExerciseActivity() : ComponentActivity() {
                             },
                             maxLines = 1
                         )
-                        if (isExerciseNameError){
+                        if (isExerciseNameInvalid){
                             Text(text = "Please enter a valid exercise name", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                        }
+                        if (isExerciseDuplicateError){
+                            Text(text = "Exercise name already exists", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(

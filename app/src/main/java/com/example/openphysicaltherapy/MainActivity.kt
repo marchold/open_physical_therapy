@@ -40,14 +40,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.openphysicaltherapy.ExercisesList.ExerciseListViewModel
-import com.example.openphysicaltherapy.ExercisesList.ExercisesScreen
+import com.example.openphysicaltherapy.ExercisesList.ExercisesListView
 import com.example.openphysicaltherapy.Widgets.actionBarColors
+import com.example.openphysicaltherapy.WorkoutList.WorkoutListViewModel
+import com.example.openphysicaltherapy.WorkoutList.WorkoutsListView
 import com.example.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val exercises by viewModels<ExerciseListViewModel>()
+    private val workouts by viewModels<WorkoutListViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -167,10 +170,10 @@ class MainActivity : ComponentActivity() {
                 HomeScreen()
             }
             composable(NavigationItem.Exercises.route) {
-                ExercisesScreen(exercises)
+                ExercisesListView(exercises)
             }
             composable(NavigationItem.Workouts.route) {
-                WorkoutsScreen()
+                WorkoutsListView(workouts)
             }
         }
     }
@@ -197,13 +200,6 @@ fun HomeScreen() {
 
 
 
-}
-
-
-
-@Composable
-fun WorkoutsScreen() {
-    CenterText(text = "Workouts")
 }
 
 sealed class NavigationItem(var route: String, val icon: Int, var title: String) {

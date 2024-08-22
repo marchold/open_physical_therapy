@@ -1,4 +1,5 @@
-package com.example.openphysicaltherapy.ExercisesList
+package com.example.openphysicaltherapy.WorkoutList
+
 
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -35,17 +36,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
-import com.example.openphysicaltherapy.EditExercise.EditExerciseActivity
+import com.example.openphysicaltherapy.EditWorkout.EditWorkoutActivity
 import com.example.openphysicaltherapy.Widgets.FloatingButtonItem
 import com.example.openphysicaltherapy.Widgets.MultiFloatingActionButton
 import com.example.openphysicaltherapy.R
 import com.example.openphysicaltherapy.Widgets.DismissBackground
 
 @Composable
-fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
+fun WorkoutsListView(workoutsListViewModel: WorkoutListViewModel) {
     val context = LocalContext.current
 
-    val exercisesState = remember { exerciseListViewModel.getExercises() }
+    val workoutsState = remember { workoutsListViewModel.getWorkouts() }
     var itemToDelete by remember { mutableIntStateOf(0) }
     val openDialog = remember { mutableStateOf(false)  }
     if (openDialog.value) {
@@ -58,12 +59,12 @@ fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
                 Text(text = "Are You Sure")
             },
             text = {
-                Text("Delete ${exerciseListViewModel.getExercise(itemToDelete).name}?")
+                Text("Delete ${workoutsListViewModel.getWorkout(itemToDelete).name}?")
             },
             confirmButton = {
                 Button(
                     onClick = {
-                        exerciseListViewModel.deleteExercise(exerciseListViewModel.getExercise(itemToDelete).name)
+                        workoutsListViewModel.deleteExercise(workoutsListViewModel.getWorkout(itemToDelete).name)
                         openDialog.value = false
                     }) {
                     Text("Delete")
@@ -84,11 +85,11 @@ fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
             MultiFloatingActionButton(
                 modifier = Modifier,
                 items = listOf(
-                    FloatingButtonItem(Icons.Filled.Create, "Create Exercise", onClick = {
+                    FloatingButtonItem(Icons.Filled.Create, "Create Workout", onClick = {
                         startActivity(context,
-                            Intent(context, EditExerciseActivity::class.java),null)
+                            Intent(context, EditWorkoutActivity::class.java),null)
                     }),
-                    FloatingButtonItem(ImageVector.vectorResource(R.drawable.icon_import), "Import Exercise File", onClick = {
+                    FloatingButtonItem(ImageVector.vectorResource(R.drawable.icon_import), "Import Workout File", onClick = {
 
                     })
                 ),
@@ -98,7 +99,7 @@ fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
     ) { innerPadding ->
         Column(Modifier.padding(innerPadding)) {
             LazyColumn{
-                items(exercisesState.size) { index ->
+                items(workoutsState.size) { index ->
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = {
                             when(it) {
@@ -125,10 +126,10 @@ fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
                                 .background(MaterialTheme.colorScheme.background)
                                 .clickable
                                 {
-                                    Intent(context, EditExerciseActivity::class.java).apply {
+                                    Intent(context, EditWorkoutActivity::class.java).apply {
                                         this.putExtra(
                                             "EditExercise",
-                                            exerciseListViewModel.getExercise(index).name
+                                            workoutsListViewModel.getWorkout(index).name
                                         )
                                         startActivity(context, this, null)
                                     }
@@ -136,7 +137,7 @@ fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
                                 },
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Text(text = exerciseListViewModel.getExercise(index).name,
+                                Text(text = workoutsListViewModel.getWorkout(index).name,
                                     modifier = Modifier.padding(10.dp))
                             }
                             HorizontalDivider()
