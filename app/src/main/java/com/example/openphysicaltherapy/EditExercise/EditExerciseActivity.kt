@@ -100,7 +100,7 @@ class EditExerciseActivity() : ComponentActivity() {
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text(getString(R.string.title_activity_create_exercise)) },
+                        title = { Text("Edit Exercise") },
                         actions = {
                             IconButton(onClick = {
                                 showConfirmDiscardAlert.value = true
