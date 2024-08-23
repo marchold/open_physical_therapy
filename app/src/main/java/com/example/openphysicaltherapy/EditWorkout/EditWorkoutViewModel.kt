@@ -44,6 +44,11 @@ class EditWorkoutViewModel @Inject constructor(private val repo: WorkoutReposito
     }
 
     fun save(){
+        originalName?.let { originalName ->
+            if (originalName != name.value) {
+                repo.deleteWorkout(originalName)
+            }
+        }
         repo.saveWorkout(workout)
     }
 
