@@ -43,13 +43,11 @@ class EditExerciseViewModel @Inject constructor(private val repo: ExerciseReposi
     }
 
     fun load(name:String) {
-        val exercise = repo.getExercise(name)
-        originalName = name
-        this._name.value = name
-        exercise?.name = name
-        exercise?.steps?.let {
-            _exerciseSteps = it.toMutableStateList()
-            this.exercise.steps = it
+        repo.getExercise(name)?.let {
+            exercise = it
+            originalName = name
+            _name.value = name
+            _exerciseSteps = exercise.steps.toMutableStateList()
         }
     }
 

@@ -8,10 +8,10 @@ data class ExerciseStep(var numberOfReps: Int = 1,
                         var slides: MutableList<InstructionalSlide> = mutableListOf(  InstructionalSlide() ))
 
 data class Exercise(var name: String,
-                    var steps: MutableList<ExerciseStep> = mutableListOf(ExerciseStep()))
+                    var steps: MutableList<ExerciseStep> = mutableListOf(ExerciseStep()),
+                    var workouts: MutableList<WorkoutListItem> = mutableListOf())
 
-data class ExerciseListItem(val name: String,
-                            var workouts: MutableList<WorkoutListItem> = mutableListOf())
+data class ExerciseListItem(val name: String)
 
 data class Workout(var name: String, var exercises: List<ExerciseListItem>)
 

@@ -47,7 +47,7 @@ import com.example.openphysicaltherapy.Widgets.MultiFloatingActionButton
 @Composable
 fun WorkoutsListView(workoutsListViewModel: WorkoutListViewModel) {
     val context = LocalContext.current
-
+    workoutsListViewModel.reload()
     val workoutsState = remember { workoutsListViewModel.getWorkouts() }
     var itemToDelete by remember { mutableIntStateOf(0) }
     val openDialog = remember { mutableStateOf(false)  }
@@ -130,7 +130,7 @@ fun WorkoutsListView(workoutsListViewModel: WorkoutListViewModel) {
                                 {
                                     Intent(context, EditWorkoutActivity::class.java).apply {
                                         this.putExtra(
-                                            "EditExercise",
+                                            "EditWorkout",
                                             workoutsListViewModel.getWorkout(index).name
                                         )
                                         startActivity(context, this, null)

@@ -1,6 +1,5 @@
 package com.example.openphysicaltherapy.EditWorkout
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -13,15 +12,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
@@ -45,6 +38,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -53,22 +47,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.openphysicaltherapy.Data.ExerciseListItem
-import com.example.openphysicaltherapy.EditExercise.EditExerciseActivity
 import com.example.openphysicaltherapy.ExercisesList.ExerciseListViewModel
-import com.example.openphysicaltherapy.R
 import com.example.openphysicaltherapy.Widgets.actionBarColors
 import com.example.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -89,25 +76,21 @@ class EditWorkoutActivity : ComponentActivity() {
     @Composable
     fun EditWorkoutView(workoutToEdit: String?) {
         val workoutViewModel = hiltViewModel<EditWorkoutViewModel>()
-        workoutToEdit?.let {
-            workoutViewModel.load(it)
+        LaunchedEffect(Unit) {
+            workoutToEdit?.let {
+                workoutViewModel.load(it)
+            }
         }
         val exerciseListViewModel = hiltViewModel<ExerciseListViewModel>()
         exerciseListViewModel.reload()
-        val exercisesState = remember { exerciseListViewModel.getExercises() }
 
-        //TODO: I think this can just be a list, no state required
-        val workoutsState = remember { workoutViewModel.getExercises() }
+        val exercisesState = exerciseListViewModel.getExercises()
+        val workoutsExercises = workoutViewModel.getExercises()
         val nameState by workoutViewModel.name.observeAsState()
 
-        val coroutineScope = rememberCoroutineScope()
         var isWorkoutNameInvalid by remember { mutableStateOf(false) }
         var isWorkoutDuplicateError by remember { mutableStateOf(false) }
-        var isSaveButtonEnabled by remember {
-            mutableStateOf(
-                (workoutViewModel.name.value?.length ?: 0) > 0
-            )
-        }
+        var isSaveButtonEnabled by remember { mutableStateOf((workoutToEdit?.length ?: 0) > 0)}
         val showConfirmDiscardAlert = remember { mutableStateOf(false) }
 
         if (showConfirmDiscardAlert.value) {
@@ -309,14 +292,14 @@ class EditWorkoutActivity : ComponentActivity() {
                         Spacer(modifier = Modifier.height(10.dp))
 
                         LazyColumn {
-                            items(workoutsState.size){ index ->
+                            items(workoutsExercises.size){ index ->
                                 Row(modifier = Modifier
                                     .height(55.dp)
                                     .fillMaxWidth()
                                     .background(MaterialTheme.colorScheme.background),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    Text(text = workoutsState[index].name,
+                                    Text(text = workoutsExercises[index].name,
                                         modifier = Modifier.padding(10.dp))
                                 }
                                 HorizontalDivider()

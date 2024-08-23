@@ -1,13 +1,13 @@
 package com.example.openphysicaltherapy.EditWorkout
 
 import android.content.Context
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.openphysicaltherapy.Data.Workout
 import com.example.openphysicaltherapy.Data.ExerciseListItem
-import com.example.openphysicaltherapy.Data.ExerciseRepository
 import com.example.openphysicaltherapy.Data.WorkoutListItem
 import com.example.openphysicaltherapy.Data.WorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +22,7 @@ class EditWorkoutViewModel @Inject constructor(private val repo: WorkoutReposito
         private set
 
     private var _exercises = workout.exercises.toMutableStateList()
-    fun getExercises():List<ExerciseListItem>{
+    fun getExercises():SnapshotStateList<ExerciseListItem>{
         return _exercises
     }
     fun addExercise(item: ExerciseListItem){
@@ -42,13 +42,12 @@ class EditWorkoutViewModel @Inject constructor(private val repo: WorkoutReposito
     }
 
     fun load(name:String) {
-        val exercise = repo.getWorkout(name)
-        originalName = name
-        this._name.value = name
-        exercise?.name = name
-        exercise?.exercises?.let {
-            _exercises = it.toMutableStateList()
-            this.workout.exercises = it
+        repo.getWorkout(name)?.let {
+            workout = it
+            originalName = name
+            _name.value = name
+            _exercises.clear()
+            _exercises.addAll(workout.exercises)
         }
     }
 
@@ -57,6 +56,7 @@ class EditWorkoutViewModel @Inject constructor(private val repo: WorkoutReposito
         if (listOfExercises == null){
             listOfExercises = WorkoutRepository(context).getWorkoutList()
         }
+        if (name == originalName) return true
         listOfExercises?.forEach {
             if (it.name == name) {
                 return false
