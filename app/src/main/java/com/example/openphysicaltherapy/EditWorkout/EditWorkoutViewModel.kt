@@ -22,11 +22,17 @@ class EditWorkoutViewModel @Inject constructor(private val repo: WorkoutReposito
         private set
 
     private var _exercises = workout.exercises.toMutableStateList()
-    fun getExercises():SnapshotStateList<ExerciseListItem>{
+    fun getExercises():List<ExerciseListItem>{
         return _exercises
     }
     fun addExercise(item: ExerciseListItem){
         _exercises.add(item)
+        workout.exercises = _exercises
+    }
+    fun moveExercise(from:Int, to:Int){
+        val fromItem = _exercises[from]
+        _exercises.removeAt(from)
+        _exercises.add(to, fromItem)
         workout.exercises = _exercises
     }
 

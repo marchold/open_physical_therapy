@@ -100,7 +100,7 @@ fun WorkoutsListView(workoutsListViewModel: WorkoutListViewModel) {
         },
     ) { innerPadding ->
         Column(Modifier.padding(innerPadding)) {
-            LazyColumn{
+            LazyColumn(Modifier.padding(top=10.dp)){
                 items(workoutsState.size) { index ->
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = {

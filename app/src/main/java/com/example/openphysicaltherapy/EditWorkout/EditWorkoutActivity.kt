@@ -55,7 +55,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.openphysicaltherapy.Data.ExerciseListItem
 import com.example.openphysicaltherapy.ExercisesList.ExerciseListViewModel
+import com.example.openphysicaltherapy.Widgets.DragAndDropLazyColumn
 import com.example.openphysicaltherapy.Widgets.actionBarColors
 import com.example.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -112,7 +114,6 @@ class EditWorkoutActivity : ComponentActivity() {
             skipPartiallyExpanded = true
         )
         val scope = rememberCoroutineScope()
-
         if (showExercisePicker) {
             ModalBottomSheet(
                 onDismissRequest = {
@@ -184,17 +185,6 @@ class EditWorkoutActivity : ComponentActivity() {
                         }),
                         singleLine = true
                     )
-
-//                    Icon(
-//                        modifier = Modifier
-//                            .fillMaxSize()
-//                            .padding(10.dp),
-//                        imageVector = Icons.Outlined.Search,
-//                        contentDescription = "stringResource(R.string.search)",
-//                        tint = MaterialTheme.colorScheme.primary,
-//                    )
-
-
                 }
                 LazyColumn {
                     val filteredItems = exercisesState.filter { it.name.contains(text, ignoreCase = true) }
@@ -291,8 +281,9 @@ class EditWorkoutActivity : ComponentActivity() {
                         }
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        LazyColumn {
-                            items(workoutsExercises.size){ index ->
+                        DragAndDropLazyColumn<ExerciseListItem>(
+                            list = workoutsExercises,
+                            itemContent = { item, index ->
                                 Row(modifier = Modifier
                                     .height(55.dp)
                                     .fillMaxWidth()
@@ -303,8 +294,19 @@ class EditWorkoutActivity : ComponentActivity() {
                                         modifier = Modifier.padding(10.dp))
                                 }
                                 HorizontalDivider()
-                            }
-                        }
+                            },
+                            moveListItem = { from, to ->
+                                workoutViewModel.moveExercise(from, to)
+//                                val fromItem = workoutsExercises[from]
+//                                workoutsExercises.removeAt(from)
+//                                workoutsExercises.add(to, fromItem)
+                                workoutsExercises
+                            })
+//                        LazyColumn {
+//                            items(workoutsExercises.size){ index ->
+//
+//                            }
+//                        }
 
                     }
                 },

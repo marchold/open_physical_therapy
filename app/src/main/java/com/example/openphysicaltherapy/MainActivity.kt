@@ -41,6 +41,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.openphysicaltherapy.ExercisesList.ExerciseListViewModel
 import com.example.openphysicaltherapy.ExercisesList.ExercisesListView
+import com.example.openphysicaltherapy.TodayTab.HomeScreen
 import com.example.openphysicaltherapy.Widgets.actionBarColors
 import com.example.openphysicaltherapy.WorkoutList.WorkoutListViewModel
 import com.example.openphysicaltherapy.WorkoutList.WorkoutsListView
@@ -96,14 +97,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
         ) { innerPadding ->
-            Box(modifier = Modifier.padding(
-                PaddingValues(
-                    0.dp,
-                    0.dp,
-                    0.dp,
-                    innerPadding.calculateBottomPadding())
-                )
-            ) {
+            Box(modifier = Modifier.padding(innerPadding))
+            {
                 Tabs(navController = navController)
             }
 
@@ -182,25 +177,6 @@ class MainActivity : ComponentActivity() {
 
 
 
-
-@Composable
-fun CenterText(text: String) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = text, fontSize = 32.sp)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HomeScreen() {
-
-
-
-}
 
 sealed class NavigationItem(var route: String, val icon: Int, var title: String) {
     data object Today : NavigationItem("Today", R.drawable.arm_flex_outline, "Today")

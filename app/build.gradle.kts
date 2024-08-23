@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.activity)
+    implementation(libs.androidx.media3.common)
     kapt(libs.hilt.android.compiler.v244)
 
     implementation(libs.androidx.hilt.common)
