@@ -52,6 +52,24 @@ class InstructionalSlideViewModel(private val exerciseFileName:String, private v
 //        slide.videoFileName = newFile
 //    }
 
+    fun getImageFile():File? {
+        slide.imageFileName?.let { imageFileName ->
+            return File(
+                File(
+                    File(
+                        application.filesDir,
+                        "exercises"
+                    ),
+                    exerciseFileName
+                ),imageFileName)
+            }
+        return null
+    }
+
+    fun hasVisualMedia():Boolean{
+        return (slide.imageFileName != null || slide.videoFileName != null)
+    }
+
     private fun inputStreamToFile(uri: Uri, file: File){
         val inputStream = application.contentResolver.openInputStream(uri)
         val output = FileOutputStream(file)
@@ -64,10 +82,11 @@ class InstructionalSlideViewModel(private val exerciseFileName:String, private v
         val imageFileName = "slide_image_${System.currentTimeMillis()}.jpg"
         slide.imageFileName = imageFileName
         imageFile = imageFileName
-        val file = File(File(File(application.filesDir,
+        val path = File(File(application.filesDir,
             "exercises"),
-            exerciseFileName),
-            imageFileName)
+            exerciseFileName)
+        path.mkdirs()
+        val file = File(path, imageFileName)
         inputStreamToFile(uri, file)
     }
 

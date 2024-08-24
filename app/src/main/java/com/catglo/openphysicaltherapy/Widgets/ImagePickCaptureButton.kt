@@ -46,6 +46,7 @@ import java.io.File
 fun ImagePickCaptureButton(
     onImageFilePicked : (Uri) -> Unit,
     onVideoFilePicked : (Uri) -> Unit,
+    imageVector: ImageVector = ImageVector.vectorResource(id = R.drawable.icon_add_image)
 ) {
     val directory = File(LocalContext.current.cacheDir, "media")
 
@@ -225,7 +226,7 @@ fun ImagePickCaptureButton(
         showImagePickerBottomSheet = true
     }) {
         Icon(
-            imageVector = ImageVector.vectorResource(id = R.drawable.icon_add_image),
+            imageVector = imageVector,
             contentDescription = "Add Image"
         )
     }

@@ -62,10 +62,32 @@ fun NumberPicker(
 @Composable
 fun NumberPickerTextField(
     intLiveData: MutableState<Int>,
-    icon: ImageVector,
+    icon: ImageVector? = null,
     minimumValue:Int,
     maximumValue:Int,
     title:String,
+    previewView:@Composable (intLiveData: MutableState<Int>, showBottomSheet: Boolean) -> Unit = { intLiveDataParam, showBottomSheet ->
+        TextField(
+            value = intLiveDataParam.value.toString(),
+            onValueChange = { },
+            enabled = false,
+            readOnly = true,
+            modifier = Modifier.fillMaxWidth(),
+            colors = when (showBottomSheet) {
+                true -> TextFieldDefaults.colors(
+                    disabledLabelColor = MaterialTheme.colorScheme.primary,
+                    disabledTextColor = MaterialTheme.colorScheme.onBackground,
+                    disabledIndicatorColor = MaterialTheme.colorScheme.primary,
+                )
+
+                false -> TextFieldDefaults.colors(
+                    disabledLabelColor = MaterialTheme.colorScheme.onBackground,
+                    disabledTextColor = MaterialTheme.colorScheme.onBackground
+                )
+            },
+            label = { Text(text = title) }
+        )
+    },
     onNumberSelected:(Int)->Unit)
 {
     val sheetState = rememberModalBottomSheetState()
@@ -75,10 +97,13 @@ fun NumberPickerTextField(
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            icon,
-            contentDescription = "$title Icon",
-            modifier = Modifier.padding(start = 10.dp, top=0.dp, end=10.dp, bottom = 0.dp))
+        icon?.let {
+            Icon(
+                it,
+                contentDescription = "$title Icon",
+                modifier = Modifier.padding(start = 10.dp, top = 0.dp, end = 10.dp, bottom = 0.dp)
+            )
+        }
         Box(modifier = Modifier
             .fillMaxWidth()
             .clickable {
@@ -86,26 +111,7 @@ fun NumberPickerTextField(
                     showBottomSheet = true
                 }
             }) {
-            TextField(
-                value = intLiveData.value.toString(),
-                onValueChange = { },
-                enabled = false,
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth(),
-                colors = when (showBottomSheet) {
-                    true -> TextFieldDefaults.colors(
-                        disabledLabelColor = MaterialTheme.colorScheme.primary,
-                        disabledTextColor = MaterialTheme.colorScheme.onBackground,
-                        disabledIndicatorColor = MaterialTheme.colorScheme.primary,
-                    )
-
-                    false -> TextFieldDefaults.colors(
-                        disabledLabelColor = MaterialTheme.colorScheme.onBackground,
-                        disabledTextColor = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                label = { Text(text = title) }
-            )
+            previewView(intLiveData,showBottomSheet)
         }
        // HorizontalDivider(color = Color.Blue, thickness = 1.dp)
     }

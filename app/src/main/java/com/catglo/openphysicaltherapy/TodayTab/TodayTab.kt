@@ -1,4 +1,4 @@
-package com.catglo.openphysicaltherapy.todayTab
+package com.catglo.openphysicaltherapy.TodayTab
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable

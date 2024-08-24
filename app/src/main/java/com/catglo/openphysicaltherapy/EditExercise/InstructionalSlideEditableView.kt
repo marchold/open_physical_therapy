@@ -2,30 +2,53 @@ package com.catglo.openphysicaltherapy.EditExercise
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.ImageResult
 import com.catglo.openphysicaltherapy.Data.InstructionalSlide
 import com.catglo.openphysicaltherapy.OpenPhysicalTherapyApplication
 import com.catglo.openphysicaltherapy.R
@@ -49,16 +72,24 @@ fun EditableInstructionalSlideView(
         factory = viewModelFactory {
             InstructionalSlideViewModel(exerciseName,slide,application)
         })
+    //val previewUri = remember { mutableStateOf<Uri?>(null) }
 
-    Box {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("Slide ${slideIndex + 1}")
+    val slideImage = slideViewModel.getImageFile()
+
+
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box {
+            Image(
+                painterResource(R.drawable.landscape_placeholder_svgrepo_com),
+                "placeholder image"
+            )
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current).data(slideImage).build(),
+                modifier = Modifier.fillMaxWidth().height(500.dp),
+                contentDescription = null,
+            )
         }
         if (slideIndex > 0) {
             Column(
@@ -74,17 +105,50 @@ fun EditableInstructionalSlideView(
                 }
             }
         }
-    }
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            Icons.Outlined.Info,
-            contentDescription = "Information Icon",
-            modifier = Modifier.padding(start = 10.dp, top = 0.dp, end = 10.dp, bottom = 0.dp)
-        )
+
+        NumberPickerTextField(
+            intLiveData = slideViewModel.duration,
+            minimumValue = 3,
+            maximumValue = 500,
+            title = "Duration in seconds",
+            previewView = { intLiveDataParam, showBottomSheet ->
+                Box(Modifier.padding(top=20.dp)) {
+                    Column(
+                        Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row {
+                            val backgroundColor = MaterialTheme.colorScheme.background
+                            val onBackgroundColor = MaterialTheme.colorScheme.onBackground
+                            Text(
+                                text = intLiveDataParam.value.toString(),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 32.sp,
+                                modifier = Modifier
+                                    .drawBehind {
+                                        drawCircle(color = backgroundColor)
+                                        drawCircle(
+                                            color = onBackgroundColor,
+                                            style = Stroke(width = 10f)
+                                        )
+                                    }
+                                    .padding(16.dp))
+                            Icon(Icons.Outlined.Edit,
+                                "Edit Icon",
+                                modifier = Modifier
+                                    .padding(top = 45.dp)
+                                    .size(20.dp))
+                        }
+                    }
+
+                }
+            }
+        ) {
+            slideViewModel.updateDuration(it)
+        }
+
         TextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
             value = slideViewModel.text,
             onValueChange = { newValue ->
                 slideViewModel.updateText(newValue)
@@ -93,33 +157,23 @@ fun EditableInstructionalSlideView(
                 Text(text = "Instructional text")
             }
         )
-    }
 
-    NumberPickerTextField(
-        intLiveData = slideViewModel.duration,
-        icon = ImageVector.vectorResource(R.drawable.icon_timer),
-        minimumValue = 3,
-        maximumValue = 500,
-        title = "Duration in seconds"
-    ) {
-        slideViewModel.updateDuration(it)
-    }
-    Row {
-        Spacer(modifier = Modifier.width(35.dp))
         ImagePickCaptureButton(
             onImageFilePicked = { uri ->
-                Log.i("file","got image $uri")
+                Log.i("file", "got image $uri")
+                // previewUri.value = uri
                 slideViewModel.updateImage(uri)
             },
             onVideoFilePicked = { uri ->
-                Log.i("file","got video $uri")
+                Log.i("file", "got video $uri")
                 slideViewModel.updateVideo(uri)
+            },
+            imageVector = if (slideViewModel.hasVisualMedia()) {
+                ImageVector.vectorResource(id = R.drawable.icon_image_edit)
+            } else {
+                ImageVector.vectorResource(id = R.drawable.icon_add_image)
             })
-        IconButton(onClick = {
 
-        }) {
-            Icon(imageVector = ImageVector.vectorResource(id = R.drawable.icon_add_audio),
-                contentDescription = "Add Audio")
-        }
+
     }
 }
