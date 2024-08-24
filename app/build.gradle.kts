@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.openphysicaltherapy"
+    namespace = "com.catglo.openphysicaltherapy"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.openphysicaltherapy"
+        applicationId = "com.catglo.openphysicaltherapy"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.media3.common)
+    implementation(libs.coil.compose)
     kapt(libs.hilt.android.compiler.v244)
 
     implementation(libs.androidx.hilt.common)
