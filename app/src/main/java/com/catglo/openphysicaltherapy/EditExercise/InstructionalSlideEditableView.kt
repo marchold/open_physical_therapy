@@ -1,5 +1,7 @@
 package com.catglo.openphysicaltherapy.EditExercise
 
+import android.app.Application
+import android.media.browse.MediaBrowser
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,6 +30,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -45,7 +50,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.request.ImageResult
@@ -55,8 +66,15 @@ import com.catglo.openphysicaltherapy.R
 import com.catglo.openphysicaltherapy.Widgets.ImagePickCaptureButton
 import com.catglo.openphysicaltherapy.Widgets.NumberPickerTextField
 import com.catglo.openphysicaltherapy.viewModelFactory
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ViewModelComponent
+import dagger.hilt.android.scopes.ViewModelScoped
+import java.io.File
 
+
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditableInstructionalSlideView(
@@ -83,13 +101,44 @@ fun EditableInstructionalSlideView(
         Box {
             Image(
                 painterResource(R.drawable.landscape_placeholder_svgrepo_com),
-                "placeholder image"
+                "placeholder image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
             )
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current).data(slideImage).build(),
-                modifier = Modifier.fillMaxWidth().height(500.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(500.dp),
                 contentDescription = null,
             )
+
+            slideViewModel.videoFileUri()?.path?.let { path ->
+                val exoPlayer = ExoPlayer.Builder(LocalContext.current).build()
+                AndroidView(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .height(400.dp),
+                    factory = { context ->
+                        PlayerView(context).apply {
+                            player = exoPlayer
+                            hideController()
+                            player?.repeatMode = Player.REPEAT_MODE_ONE
+                            //player = viewModel.player
+                            //artworkDisplayMode = PlayerView.ARTWORK_DISPLAY_MODE_FIT
+                            //artworkPlaceHolder?.let { defaultArtwork = it }
+                        }
+                    }
+                )
+                val mediaItem = MediaItem.fromUri(slideViewModel.videoFileUri()!!)
+                // Set the media item to be played.
+                exoPlayer.setMediaItem(mediaItem)
+                // Prepare the player.
+                exoPlayer.prepare()
+                // Start the playback.
+                exoPlayer.play()
+            }
         }
         if (slideIndex > 0) {
             Column(
@@ -148,7 +197,9 @@ fun EditableInstructionalSlideView(
         }
 
         TextField(
-            modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter),
             value = slideViewModel.text,
             onValueChange = { newValue ->
                 slideViewModel.updateText(newValue)
@@ -177,3 +228,18 @@ fun EditableInstructionalSlideView(
 
     }
 }
+
+//@Module
+//@InstallIn(ViewModelComponent::class)
+//class MediaModule {
+//
+//    /**
+//     * Provides a singleton instance of ExoPlayer scoped to ViewModel.
+//     * @param application The application context used to build ExoPlayer instance.
+//     * @return A singleton instance of ExoPlayer.
+//     */
+//    @Provides
+//    @ViewModelScoped
+//    fun provideExoPlayer(application: Application): ExoPlayer =
+//        ExoPlayer.Builder(application).build()
+//}

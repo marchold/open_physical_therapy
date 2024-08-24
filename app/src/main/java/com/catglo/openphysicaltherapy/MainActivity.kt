@@ -119,7 +119,7 @@ class MainActivity : ComponentActivity() {
         }
 
         NavigationBar(
-            containerColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ) {
             items.forEachIndexed { index, item ->
                 NavigationBarItem(
@@ -172,9 +172,6 @@ class MainActivity : ComponentActivity() {
 }
 
 //TODO: Add images, videos, and audio clips to the exercises
-
-
-//TODO: Make the edit exercise view have some sort of preview like maybe flippable cards
 
 //TODO: Need to deal with exercise and workouts as zip files that can be exported and imported
 

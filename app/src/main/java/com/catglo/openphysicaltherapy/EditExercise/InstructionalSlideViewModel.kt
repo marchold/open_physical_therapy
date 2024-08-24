@@ -1,6 +1,7 @@
 package com.catglo.openphysicaltherapy.EditExercise
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -70,35 +71,55 @@ class InstructionalSlideViewModel(private val exerciseFileName:String, private v
         return (slide.imageFileName != null || slide.videoFileName != null)
     }
 
-    private fun inputStreamToFile(uri: Uri, file: File){
+    private fun inputStreamToFile(uri: Uri, file: File):Boolean{
         val inputStream = application.contentResolver.openInputStream(uri)
         val output = FileOutputStream(file)
-        inputStream?.copyTo(output, 4 * 1024)
+        val bytesCopied = inputStream?.copyTo(output, 4 * 1024)
+        return ((bytesCopied ?: 0) > 0)
     }
 
     fun updateImage(uri: Uri) {
         //The idea here is to copy the new file to the exercise folder then we can just store the
         //file name as a string
         val imageFileName = "slide_image_${System.currentTimeMillis()}.jpg"
-        slide.imageFileName = imageFileName
-        imageFile = imageFileName
         val path = File(File(application.filesDir,
             "exercises"),
             exerciseFileName)
         path.mkdirs()
         val file = File(path, imageFileName)
-        inputStreamToFile(uri, file)
+        if (inputStreamToFile(uri, file)){
+            slide.imageFileName = imageFileName
+            imageFile = imageFileName
+            slide.videoFileName = null
+            videoFile = null
+        }
     }
 
     fun updateVideo(uri: Uri) {
         val videoFileName = "slide_video_${System.currentTimeMillis()}"
-        slide.videoFileName = videoFileName
-        videoFile = videoFileName
-        val file = File(File(File(application.filesDir,
+        val path = File(File(application.filesDir,
             "exercises"),
-            exerciseFileName),
-            videoFileName)
-        inputStreamToFile(uri, file)
+            exerciseFileName)
+        path.mkdirs()
+        val file = File(path, videoFileName)
+        if (inputStreamToFile(uri, file)){
+            slide.videoFileName = videoFileName
+            videoFile = videoFileName
+            slide.imageFileName = null
+            imageFile = null
+        }
+    }
+
+    fun videoFileUri(): Uri? {
+        slide.videoFileName?.let { videoFileName ->
+            val file = File(File(File(
+                    application.filesDir,
+                "exercises"),
+                    exerciseFileName),
+                    videoFileName)
+            return Uri.fromFile(file)
+        }
+        return null
     }
 
 }
