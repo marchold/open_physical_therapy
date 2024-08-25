@@ -111,15 +111,8 @@ class InstructionalSlideViewModel(private val exerciseFileName:String, private v
     }
 
     fun videoFileUri(): Uri? {
-        slide.videoFileName?.let { videoFileName ->
-            val file = File(File(File(
-                    application.filesDir,
-                "exercises"),
-                    exerciseFileName),
-                    videoFileName)
-            return Uri.fromFile(file)
-        }
-        return null
+        return slide.videoFileUri(application, exerciseFileName)
+
     }
 
 }

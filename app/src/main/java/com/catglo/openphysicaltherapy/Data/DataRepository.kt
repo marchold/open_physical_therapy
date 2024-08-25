@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 interface WorkoutRepositoryInterface {
     fun getWorkout(fileName: String): Workout?
-    fun saveWorkout(workout: Workout)
+    fun saveWorkout(workout: Workout, forPreview: Boolean=false)
     fun getWorkoutList():List<WorkoutListItem>
     fun deleteWorkout(fileName: String)
 }
@@ -26,10 +26,10 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
         return File(path, "${name}-index.json")
     }
 
-    override fun getWorkout(name: String): Workout? {
+    override fun getWorkout(fileName: String): Workout? {
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val jsonAdapter: JsonAdapter<Workout> = moshi.adapter(Workout::class.java)
-        val json = FileInputStream(file( name))
+        val json = FileInputStream(file( fileName))
             .bufferedReader()
             .use {
                 it.readText()
@@ -38,26 +38,32 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
         return workout
     }
 
-    override fun saveWorkout(workout: Workout) {
+    override fun saveWorkout(workout: Workout, forPreview: Boolean) {
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val jsonAdapter: JsonAdapter<Workout> = moshi.adapter(Workout::class.java)
         val json: String = jsonAdapter.toJson(workout)
-        val outputFile = file(workout.name)
-        FileOutputStream(outputFile).use {
-            it.write(json.toByteArray())
+        val outputFile = if (forPreview) {
+            file("workout_preview")
+        } else {
+            file(workout.fileName)
         }
-        val list = getWorkoutList().toMutableList()
-        var fileNameExists = false
-        for (i in 0 until list.size){
-            if (list[i].fileName == workout.fileName) {
-                fileNameExists = true
-                list[i].name = workout.name
+        if (!forPreview) {
+            FileOutputStream(outputFile).use {
+                it.write(json.toByteArray())
             }
+            val list = getWorkoutList().toMutableList()
+            var fileNameExists = false
+            for (i in 0 until list.size) {
+                if (list[i].fileName == workout.fileName) {
+                    fileNameExists = true
+                    list[i].name = workout.name
+                }
+            }
+            if (!fileNameExists) {
+                list.add(WorkoutListItem(workout.name, workout.fileName))
+            }
+            saveWorkoutList(list)
         }
-        if (!fileNameExists) {
-            list.add(WorkoutListItem(workout.name, workout.fileName))
-        }
-        saveWorkoutList(list)
     }
 
     override fun getWorkoutList() : List<WorkoutListItem> {
@@ -105,23 +111,28 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
 
 interface ExerciseRepositoryInterface {
     fun getExercise(fileName: String): Exercise?
-    fun saveExercise(exercise: Exercise)
+    fun saveExercise(exercise: Exercise, forPreview: Boolean = false)
     fun getExerciseList():List<ExerciseListItem>
     fun deleteExercise(fileName: String)
 }
 
 class ExerciseRepository @Inject constructor(@ApplicationContext val context: Context) : ExerciseRepositoryInterface {
 
-    private fun file(name: String): File {
-        val path = File(File(context.filesDir, "exercises"), name)
+    private fun path(fileName: String): File {
+        val path = File(File(context.filesDir, "exercises"), fileName)
         if (!path.exists()) path.mkdirs()
-        return File(path, "${name}-index.json")
+        return path
+    }
+
+    private fun file(fileName: String): File {
+        return File(path(fileName), "${fileName}-index.json")
     }
 
     override fun getExercise(fileName: String): Exercise? {
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val jsonAdapter: JsonAdapter<Exercise> = moshi.adapter(Exercise::class.java)
-        val json = FileInputStream(file( fileName))
+        val file = file(fileName)
+        val json = FileInputStream(file)
             .bufferedReader()
             .use {
                 it.readText()
@@ -131,26 +142,35 @@ class ExerciseRepository @Inject constructor(@ApplicationContext val context: Co
         return exercise
     }
 
-    override fun saveExercise(exercise: Exercise) {
+    override fun saveExercise(exercise: Exercise, forPreview: Boolean) {
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val jsonAdapter: JsonAdapter<Exercise> = moshi.adapter(Exercise::class.java)
         val json: String = jsonAdapter.toJson(exercise)
-        val outputFile = file( exercise.fileName )
+        var outputFile : File
+        if (forPreview) {
+            outputFile = path("exercise_preview")
+            if (outputFile.exists()) outputFile.deleteRecursively()
+            outputFile.mkdirs()
+            path(exercise.fileName).copyRecursively(outputFile)
+            outputFile = File(outputFile, "exercise_preview-index.json")
+        } else {
+            outputFile = file( exercise.fileName)
+            val list = getExerciseList().toMutableList()
+            var fileNameExists = false
+            for (i in 0 until list.size) {
+                if (list[i].fileName == exercise.fileName) {
+                    fileNameExists = true
+                    list[i].name = exercise.name
+                }
+            }
+            if (!fileNameExists) {
+                list.add(ExerciseListItem(exercise.name, exercise.fileName))
+            }
+            saveExerciseList(list)
+        }
         FileOutputStream(outputFile).use {
             it.write(json.toByteArray())
         }
-        val list = getExerciseList().toMutableList()
-        var fileNameExists = false
-        for (i in 0 until list.size){
-            if (list[i].fileName == exercise.fileName) {
-                fileNameExists = true
-                list[i].name = exercise.name
-            }
-        }
-        if (!fileNameExists) {
-            list.add(ExerciseListItem(exercise.name, exercise.fileName))
-        }
-        saveExerciseList(list)
     }
 
     override fun getExerciseList() : List<ExerciseListItem> {

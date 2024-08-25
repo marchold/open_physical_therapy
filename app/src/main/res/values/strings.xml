@@ -9,5 +9,7 @@
     <string name="previous">Previous</string>
 
     <string name="fileprovider">com.catglo.take_select_photo_image.components.fileprovider</string>
+    <string name="title_activity_workout_player">WorkoutPlayerActivity</string>
+    <string name="title_activity_exercize_preview">ExercizePreviewActivity</string>
 
 </resources>

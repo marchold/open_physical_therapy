@@ -52,6 +52,10 @@ class EditWorkoutViewModel @Inject constructor(private val repo: WorkoutReposito
         repo.saveWorkout(workout)
     }
 
+    fun saveForPreview(){
+        repo.saveWorkout(workout, true)
+    }
+
     fun load(name:String) {
         repo.getWorkout(name)?.let {
             workout = it

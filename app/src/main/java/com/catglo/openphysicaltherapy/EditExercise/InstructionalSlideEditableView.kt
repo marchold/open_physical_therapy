@@ -90,11 +90,7 @@ fun EditableInstructionalSlideView(
         factory = viewModelFactory {
             InstructionalSlideViewModel(exerciseName,slide,application)
         })
-    //val previewUri = remember { mutableStateOf<Uri?>(null) }
-
     val slideImage = slideViewModel.getImageFile()
-
-
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {

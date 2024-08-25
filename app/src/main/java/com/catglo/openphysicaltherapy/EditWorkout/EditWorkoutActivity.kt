@@ -1,5 +1,6 @@
 package com.catglo.openphysicaltherapy.EditWorkout
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -48,6 +49,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -57,8 +60,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.catglo.openphysicaltherapy.Data.ExerciseListItem
 import com.catglo.openphysicaltherapy.ExercisesList.ExerciseListViewModel
+import com.catglo.openphysicaltherapy.R
 import com.catglo.openphysicaltherapy.Widgets.DragAndDropLazyColumn
 import com.catglo.openphysicaltherapy.Widgets.actionBarColors
+import com.catglo.openphysicaltherapy.WorkoutPlayer.WorkoutPlayerActivity
 import com.catglo.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -216,6 +221,15 @@ class EditWorkoutActivity : ComponentActivity() {
                     TopAppBar(
                         title = { Text("Edit Workout") },
                         actions = {
+                            IconButton(onClick = {
+                                //Launch preview
+                                workoutViewModel.saveForPreview()
+                                val intent = Intent(this@EditWorkoutActivity, WorkoutPlayerActivity::class.java)
+                                intent.putExtra("Workout", "")
+                                startActivity(intent)
+                            }) {
+                                Icon(ImageVector.vectorResource(id = R.drawable.icon_preview),"Preview Icon")
+                            }
                             IconButton(onClick = {
                                 showConfirmDiscardAlert.value = true
                             }) {

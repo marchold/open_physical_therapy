@@ -1,5 +1,6 @@
 package com.catglo.openphysicaltherapy.EditExercise
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -40,13 +41,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.catglo.openphysicaltherapy.R
 import com.catglo.openphysicaltherapy.Widgets.actionBarColors
+import com.catglo.openphysicaltherapy.WorkoutPlayer.ExercisePreviewActivity
 import com.catglo.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -100,6 +104,18 @@ class EditExerciseActivity() : ComponentActivity() {
                     TopAppBar(
                         title = { Text("Edit Exercise") },
                         actions = {
+                            IconButton(onClick = {
+                                exerciseViewModel.saveForPreview()
+                                startActivity(
+                                    Intent(this@EditExerciseActivity,
+                                    ExercisePreviewActivity::class.java).apply {
+                                        putExtra("Exercise", "exercise_preview")
+                                    }
+                                )
+                            }) {
+                                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.icon_preview),
+                                    contentDescription = "Preview Changes Button")
+                            }
                             IconButton(onClick = {
                                 showConfirmDiscardAlert.value = true
                             }) {

@@ -62,4 +62,8 @@ class EditExerciseViewModel @Inject constructor(private val repo: ExerciseReposi
         return exercise.fileName
     }
 
+    fun saveForPreview() {
+        repo.saveExercise(exercise, true)
+    }
+
 }
