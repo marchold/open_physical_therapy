@@ -88,6 +88,7 @@ fun NumberPickerTextField(
             label = { Text(text = title) }
         )
     },
+    extraControls:@Composable (() -> Unit)? = null,
     onNumberSelected:(Int)->Unit)
 {
     val sheetState = rememberModalBottomSheetState()
@@ -142,6 +143,7 @@ fun NumberPickerTextField(
                     Text(text = title.uppercase(), fontWeight = FontWeight.Bold)
                 }
             }
+            extraControls?.invoke()
             NumberPicker(
                 onNumberSelected = onNumberSelected,
                 value = intLiveData.value!!,

@@ -198,6 +198,15 @@ class MainActivity : ComponentActivity() {
 
 //TODO: Make the duration in seconds a proper time interval picker
 
+//TODO: Make some options associated with various elements.
+//      Use something like this to include them with the keyboard or picker
+//      https://stackoverflow.com/questions/73331594/how-can-i-show-a-composable-on-top-of-the-visible-keyboard
+//      This would include:
+//          Show the countdown timer when setting the duration
+//          For the text an option to read it with text to speech or display it
+
+//TODO: Need a way to delete a step in the edit exercise screen
+
 sealed class NavigationItem(var route: String, val icon: Int, var title: String) {
     data object Today : NavigationItem("Today", R.drawable.arm_flex_outline, "Today")
     data object Exercises : NavigationItem("Exercises", R.drawable.icon_stretch, "Exercises")

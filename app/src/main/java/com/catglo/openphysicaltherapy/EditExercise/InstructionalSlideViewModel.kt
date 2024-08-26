@@ -1,7 +1,6 @@
 package com.catglo.openphysicaltherapy.EditExercise
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -17,7 +16,7 @@ class InstructionalSlideViewModel(private val exerciseFileName:String, private v
         private set
 
     fun updateDuration(newDuration:Int){
-        duration.value = newDuration
+        duration.intValue = newDuration
         slide.duration = newDuration
     }
 
@@ -27,6 +26,14 @@ class InstructionalSlideViewModel(private val exerciseFileName:String, private v
     fun updateText(newText:String){
         text = newText
         slide.text = newText
+    }
+
+    var showCountdown = mutableStateOf(slide.countdown)
+        private set
+
+    fun updateShowCountdown(newValue:Boolean){
+        showCountdown.value = newValue
+        slide.countdown = newValue
     }
 
     var imageFile by mutableStateOf(slide.imageFileName)
@@ -54,17 +61,7 @@ class InstructionalSlideViewModel(private val exerciseFileName:String, private v
 //    }
 
     fun getImageFile():File? {
-        slide.imageFileName?.let { imageFileName ->
-            return File(
-                File(
-                    File(
-                        application.filesDir,
-                        "exercises"
-                    ),
-                    exerciseFileName
-                ),imageFileName)
-            }
-        return null
+        return slide.getImageFile(exerciseFileName, application)
     }
 
     fun hasVisualMedia():Boolean{

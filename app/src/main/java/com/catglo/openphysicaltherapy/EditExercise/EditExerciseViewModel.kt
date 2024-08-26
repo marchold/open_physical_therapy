@@ -14,7 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 @HiltViewModel
-class EditExerciseViewModel @Inject constructor(private val repo: ExerciseRepository, @ApplicationContext val context: Context) : ViewModel() {
+open class EditExerciseViewModel @Inject constructor(private val repo: ExerciseRepository, @ApplicationContext val context: Context) : ViewModel() {
     private var exercise = Exercise("")
 
     private var _exerciseSteps = exercise.steps.toMutableStateList()

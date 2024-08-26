@@ -1,16 +1,20 @@
 package com.catglo.openphysicaltherapy.Data
 
+import android.content.Context
 import android.net.Uri
-import com.catglo.openphysicaltherapy.OpenPhysicalTherapyApplication
 import java.io.File
 
 data class InstructionalSlide(var text: String = "",
                               var duration:Int=3,
-                              var countdown: Boolean = false,
+                              var countdown: Boolean = true,
                               var imageFileName: String? = null,
                               var audioFileName: String? = null,
-                              var videoFileName: String? = null) {
-    fun videoFileUri(application:OpenPhysicalTherapyApplication, exerciseFileName:String): Uri? {
+                              var videoFileName: String? = null,
+                              var speakInstructions: Boolean = false,
+                              var showTimer:Boolean = true
+    ) {
+
+    fun videoFileUri(application: Context, exerciseFileName:String): Uri? {
         videoFileName?.let { videoFileName ->
             val file = File(
                 File(
@@ -20,6 +24,20 @@ data class InstructionalSlide(var text: String = "",
                 exerciseFileName),
                 videoFileName)
             return Uri.fromFile(file)
+        }
+        return null
+    }
+
+    fun getImageFile(exerciseFileName: String, application: Context): File? {
+        imageFileName?.let { imageFileName ->
+            return File(
+                File(
+                    File(
+                        application.filesDir,
+                        "exercises"
+                    ),
+                    exerciseFileName
+                ),imageFileName)
         }
         return null
     }

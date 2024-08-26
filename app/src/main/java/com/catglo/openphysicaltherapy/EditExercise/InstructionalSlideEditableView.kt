@@ -26,6 +26,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -36,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawStyle
@@ -48,6 +50,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -162,7 +165,7 @@ fun EditableInstructionalSlideView(
                         Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Row {
+                        Row(modifier = Modifier.alpha(if (slideViewModel.showCountdown.value) {1f} else {0.5f})) {
                             val backgroundColor = MaterialTheme.colorScheme.background
                             val onBackgroundColor = MaterialTheme.colorScheme.onBackground
                             Text(
@@ -186,6 +189,19 @@ fun EditableInstructionalSlideView(
                         }
                     }
 
+                }
+            },
+            extraControls = {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "Show countdown")
+                        Switch(
+                            checked = slideViewModel.showCountdown.value,
+                            onCheckedChange = {
+                                slideViewModel.updateShowCountdown(it)
+                            },
+                            modifier = Modifier.padding(start = 10.dp))
+                    }
                 }
             }
         ) {
