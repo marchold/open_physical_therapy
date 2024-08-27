@@ -40,6 +40,7 @@ import com.catglo.openphysicaltherapy.Widgets.FloatingButtonItem
 import com.catglo.openphysicaltherapy.Widgets.MultiFloatingActionButton
 import com.catglo.openphysicaltherapy.R
 import com.catglo.openphysicaltherapy.Widgets.DismissBackground
+import com.catglo.openphysicaltherapy.ui.ExerciseListItemView
 
 @Composable
 fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
@@ -119,27 +120,15 @@ fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
                         backgroundContent = { DismissBackground(dismissState) },
                         enableDismissFromEndToStart = false,
                         content = {
-                            Row(modifier = Modifier
-                                .height(55.dp)
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.background)
-                                .clickable
-                                {
-                                    Intent(context, EditExerciseActivity::class.java).apply {
-                                        this.putExtra(
-                                            "EditExercise",
-                                            exerciseListViewModel.getExercise(index).fileName
-                                        )
-                                        startActivity(context, this, null)
-                                    }
-
-                                },
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(text = exerciseListViewModel.getExercise(index).name,
-                                    modifier = Modifier.padding(10.dp))
+                            ExerciseListItemView(exerciseListViewModel.getExercise(index)){
+                                Intent(context, EditExerciseActivity::class.java).apply {
+                                    this.putExtra(
+                                        "EditExercise",
+                                        exerciseListViewModel.getExercise(index).fileName
+                                    )
+                                    startActivity(context, this, null)
+                                }
                             }
-                            HorizontalDivider()
                         })
                 }
             }

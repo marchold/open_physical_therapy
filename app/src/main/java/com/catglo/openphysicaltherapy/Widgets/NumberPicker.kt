@@ -40,13 +40,17 @@ fun NumberPicker(
     onNumberSelected: (Int) -> Unit,
     value:Int=0,
     minimumValue:Int=0,
-    maximumValue:Int=10
+    maximumValue:Int=10,
+    formatter:NumberPicker.Formatter? = null,
 ) {
     AndroidView(
         modifier = Modifier.fillMaxWidth(),
         factory = { context ->
             val view = LayoutInflater.from(context).inflate(R.layout.number_picker, null)
             val numberPicker = view.findViewById<NumberPicker>(R.id.numberPicker)
+            formatter?.let{
+                numberPicker.setFormatter(it)
+            }
             numberPicker.maxValue = maximumValue
             numberPicker.minValue = minimumValue
             numberPicker.value = value
@@ -66,6 +70,7 @@ fun NumberPickerTextField(
     minimumValue:Int,
     maximumValue:Int,
     title:String,
+    formatter:NumberPicker.Formatter? = null,
     previewView:@Composable (intLiveData: MutableState<Int>, showBottomSheet: Boolean) -> Unit = { intLiveDataParam, showBottomSheet ->
         TextField(
             value = intLiveDataParam.value.toString(),
@@ -148,7 +153,8 @@ fun NumberPickerTextField(
                 onNumberSelected = onNumberSelected,
                 value = intLiveData.value!!,
                 minimumValue = minimumValue,
-                maximumValue = maximumValue
+                maximumValue = maximumValue,
+                formatter = formatter
             )
         }
     }

@@ -68,7 +68,9 @@ import com.catglo.openphysicaltherapy.Data.InstructionalSlide
 import com.catglo.openphysicaltherapy.OpenPhysicalTherapyApplication
 import com.catglo.openphysicaltherapy.R
 import com.catglo.openphysicaltherapy.Widgets.ImagePickCaptureButton
+import com.catglo.openphysicaltherapy.Widgets.NumberPicker
 import com.catglo.openphysicaltherapy.Widgets.NumberPickerTextField
+import com.catglo.openphysicaltherapy.secondsToInterval
 import com.catglo.openphysicaltherapy.viewModelFactory
 import dagger.Module
 import dagger.Provides
@@ -143,7 +145,8 @@ fun EditableInstructionalSlideView(
         if (slideIndex > 0) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth().zIndex(1f),
+                    .fillMaxWidth()
+                    .zIndex(1f),
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -204,7 +207,8 @@ fun EditableInstructionalSlideView(
                             modifier = Modifier.padding(start = 10.dp))
                     }
                 }
-            }
+            },
+            formatter = { it.secondsToInterval() }
         ) {
             slideViewModel.updateDuration(it)
         }

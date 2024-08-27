@@ -171,13 +171,10 @@ class MainActivity : ComponentActivity() {
 
 }
 
-//TODO: There is a bug deleting slides, the delete control is behind the number picker
+//TODO: Keep track if any changes have been made and don't show the confirm discard alert if nothing changed
 
-//TODO: Need an exercise intro screen for workouts: "Up next shoulder rows"
-//      Also probably need a list of materials like a band or whatever else you need
-
-//TODO: Make a common view for exercise list items and make those list items a little nicer
-//      by including total duration and reps and any other stats that work on that list view
+//TODO: Add a list of materials like a band or whatever else you need to the workout and each
+//      exercise screen
 
 //TODO: Need to deal with exercise and workouts as zip files that can be exported and imported
 
@@ -186,20 +183,9 @@ class MainActivity : ComponentActivity() {
 //TODO: Add some way to schedule workouts, (need to figure out the UX for this)
 //              Either integrate with google calendar, or just have a schedule option for each workout
 
-//TODO: Add a drag handle to the exercise list in the workout editor
-
-//TODO: Add some simple help/tutorial system
-
 //TODO: Catch on back pressed for edit exercise and workout and show discard changes alert
 
-//TODO: Keep track if any changes have been made and don't show the confirm discard alert if nothing changed
-
-//TODO: Show how long an exercise takes and show that in the list, also make a common exercise table cell view
-
-//TODO: Add swipe to delete to drag and drop list view, or some other way to delete items,
-//      possibly a trash cell at the bottom or something
-
-//TODO: Make the duration in seconds a proper time interval picker
+//TODO: Add some simple help/tutorial system
 
 //TODO: Make some options associated with various elements.
 //      Use something like this to include them with the keyboard or picker
@@ -207,7 +193,7 @@ class MainActivity : ComponentActivity() {
 //      This would include:
 //          For the text an option to read it with text to speech or display it
 
-//TODO: Need a way to delete a step in the edit exercise screen
+//TODO: Text to speech for exercise instructions
 
 //TODO: Would be good to have exercise body parts with icons
 

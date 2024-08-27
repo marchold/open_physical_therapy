@@ -3,10 +3,12 @@ package com.catglo.openphysicaltherapy.EditExercise
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageButton
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,12 +36,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -48,6 +53,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.catglo.openphysicaltherapy.Data.Exercise
+import com.catglo.openphysicaltherapy.Data.ExerciseRepository
 import com.catglo.openphysicaltherapy.R
 import com.catglo.openphysicaltherapy.Widgets.actionBarColors
 import com.catglo.openphysicaltherapy.WorkoutPlayer.ExercisePreviewActivity
@@ -72,9 +79,6 @@ class EditExerciseActivity() : ComponentActivity() {
     @Composable
     fun EditExerciseView(exerciseToEdit: String?) {
         val exerciseViewModel = hiltViewModel<EditExerciseViewModel>()
-        exerciseToEdit?.let {
-            exerciseViewModel.load(it)
-        }
 
         val exerciseSteps = exerciseViewModel.getExerciseSteps()
         val pagerState = rememberPagerState(pageCount = {exerciseSteps.size})
@@ -86,8 +90,8 @@ class EditExerciseActivity() : ComponentActivity() {
         var isSaveButtonEnabled by remember { mutableStateOf(
             (exerciseViewModel.name.value?.length ?: 0) > 0
         ) }
-        val showConfirmDiscardAlert = remember { mutableStateOf( false ) }
 
+        val showConfirmDiscardAlert = remember { mutableStateOf( false ) }
         if (showConfirmDiscardAlert.value){
             AlertDialog(
                 onDismissRequest = { showConfirmDiscardAlert.value = false },
@@ -95,6 +99,26 @@ class EditExerciseActivity() : ComponentActivity() {
                 title={ Text("Discard Changes") },
                 text={ Text("Are you sure you want to exit without saving?") },
                 confirmButton = { Button(onClick = { finish() }) { Text(text = "Discard Changes") } }
+            )
+        }
+
+        var showConfirmDeleteStepAlert by remember { mutableStateOf( false ) }
+        var stepIndexToDelete by remember { mutableIntStateOf( 0 ) }
+        if (showConfirmDeleteStepAlert){
+            AlertDialog(
+                onDismissRequest = { showConfirmDeleteStepAlert = false },
+                dismissButton = { Button(onClick = { showConfirmDeleteStepAlert = false }) { Text(text = "Cancel") } },
+                title={ Text("Delete this step") },
+                text={ Text("Are you sure you want to remove this step?") },
+                confirmButton = { Button(onClick =
+                {
+                    val currentPage = stepIndexToDelete
+                    exerciseViewModel.removeStep(currentPage)
+                    coroutineScope.launch {
+                        pagerState.animateScrollToPage(currentPage-1)
+                    }
+                    showConfirmDeleteStepAlert = false
+                }) { Text(text = "Delete Step") } }
             )
         }
 
@@ -167,13 +191,24 @@ class EditExerciseActivity() : ComponentActivity() {
                             Text(text = "Exercise name already exists", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "Step ${pagerState.currentPage+1}",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp),
-                            textAlign = TextAlign.Center
-                        )
+                        Box {
+                            Text(
+                                text = "Step ${pagerState.currentPage + 1}",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp)
+                                    .align(Alignment.Center),
+                                textAlign = TextAlign.Center
+                            )
+                            if (pagerState.currentPage > 0) {
+                                IconButton(onClick = {
+                                    stepIndexToDelete = pagerState.currentPage
+                                    showConfirmDeleteStepAlert = true
+                                }) {
+                                    Icon(Icons.Filled.Close, contentDescription = "Delete Step")
+                                }
+                            }
+                        }
                         HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(0.dp,0.dp,0.dp,8.dp))
                         HorizontalPager(state = pagerState ) { stepIndex ->
                             Column {

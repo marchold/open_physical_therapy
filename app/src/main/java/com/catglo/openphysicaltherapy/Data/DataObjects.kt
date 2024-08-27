@@ -53,13 +53,21 @@ data class Exercise(var name: String,
                     var fileName: String = "exercise_"+System.currentTimeMillis().toString())
 {
     fun totalDuration():Int{
-        var total = 0
+        var totalDuration = 0
         steps.forEach { step ->
             step.slides.forEach { slide ->
-                total += slide.duration
+                totalDuration += slide.duration
             }
         }
-        return total
+        return totalDuration
+    }
+
+    fun totalNumberOfReps(): Any {
+        var totalNumberOfReps = 0
+        steps.forEach { step ->
+            totalNumberOfReps += step.numberOfReps
+        }
+        return totalNumberOfReps
     }
 }
 
