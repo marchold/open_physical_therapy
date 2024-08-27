@@ -131,7 +131,7 @@ fun WorkoutsListView(workoutsListViewModel: WorkoutListViewModel) {
                                     Intent(context, EditWorkoutActivity::class.java).apply {
                                         this.putExtra(
                                             "EditWorkout",
-                                            workoutsListViewModel.getWorkout(index).name
+                                            workoutsListViewModel.getWorkout(index).fileName
                                         )
                                         startActivity(context, this, null)
                                     }

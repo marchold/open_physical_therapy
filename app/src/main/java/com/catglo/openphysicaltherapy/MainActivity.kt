@@ -171,12 +171,12 @@ class MainActivity : ComponentActivity() {
 
 }
 
-//TODO: Add images, videos, and audio clips to the exercises
+//TODO: Need an exercise intro screen for workouts: "Up next shoulder rows"
+//      Also probably need a list of materials like a band or whatever else you need
 
 //TODO: Need to deal with exercise and workouts as zip files that can be exported and imported
 
 //TODO: When exporting a workout include all its exercises
-
 
 //TODO: Add some way to schedule workouts, (need to figure out the UX for this)
 //              Either integrate with google calendar, or just have a schedule option for each workout
@@ -194,18 +194,18 @@ class MainActivity : ComponentActivity() {
 //TODO: Add swipe to delete to drag and drop list view, or some other way to delete items,
 //      possibly a trash cell at the bottom or something
 
-//TODO: Add a control to show a countdown and a UI for the countdown itself
-
 //TODO: Make the duration in seconds a proper time interval picker
 
 //TODO: Make some options associated with various elements.
 //      Use something like this to include them with the keyboard or picker
 //      https://stackoverflow.com/questions/73331594/how-can-i-show-a-composable-on-top-of-the-visible-keyboard
 //      This would include:
-//          Show the countdown timer when setting the duration
 //          For the text an option to read it with text to speech or display it
 
 //TODO: Need a way to delete a step in the edit exercise screen
+
+//TODO: Would be good to have exercise body parts with icons
+
 
 sealed class NavigationItem(var route: String, val icon: Int, var title: String) {
     data object Today : NavigationItem("Today", R.drawable.arm_flex_outline, "Today")

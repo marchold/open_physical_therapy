@@ -29,7 +29,8 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
     override fun getWorkout(fileName: String): Workout? {
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val jsonAdapter: JsonAdapter<Workout> = moshi.adapter(Workout::class.java)
-        val json = FileInputStream(file( fileName))
+        val file = file( fileName)
+        val json = FileInputStream(file)
             .bufferedReader()
             .use {
                 it.readText()
@@ -47,10 +48,10 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
         } else {
             file(workout.fileName)
         }
+        FileOutputStream(outputFile).use {
+            it.write(json.toByteArray())
+        }
         if (!forPreview) {
-            FileOutputStream(outputFile).use {
-                it.write(json.toByteArray())
-            }
             val list = getWorkoutList().toMutableList()
             var fileNameExists = false
             for (i in 0 until list.size) {
@@ -91,7 +92,7 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
             MutableList::class.java,
             WorkoutListItem::class.java
         )
-        val jsonAdapter: JsonAdapter<List<WorkoutListItem>> = moshi.adapter<List<WorkoutListItem>>(type)
+        val jsonAdapter: JsonAdapter<List<WorkoutListItem>> = moshi.adapter(type)
         val json: String = jsonAdapter.toJson(list)
         FileOutputStream(file).use {
             it.write(json.toByteArray())

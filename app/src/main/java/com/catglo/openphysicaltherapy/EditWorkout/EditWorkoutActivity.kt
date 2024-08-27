@@ -225,7 +225,7 @@ class EditWorkoutActivity : ComponentActivity() {
                                 //Launch preview
                                 workoutViewModel.saveForPreview()
                                 val intent = Intent(this@EditWorkoutActivity, WorkoutPlayerActivity::class.java)
-                                intent.putExtra("Workout", "")
+                                intent.putExtra("Workout", "workout_preview")
                                 startActivity(intent)
                             }) {
                                 Icon(ImageVector.vectorResource(id = R.drawable.icon_preview),"Preview Icon")

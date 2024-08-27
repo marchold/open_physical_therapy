@@ -38,15 +38,15 @@ import kotlinx.coroutines.delay
 
 @OptIn(UnstableApi::class)
 @Composable
-fun PlayExerciseView(exerciseToPlay: String) {
+fun PlayExerciseView(exerciseToPlay: String,
+                     onExerciseComplete: @Composable ()->Unit)
+{
     val viewModel = hiltViewModel<PlayExerciseViewModel>(key = exerciseToPlay)
-
-
     val slideImage = viewModel.getImageFile()
 
     val countdownValue = viewModel.countdownTimerValue.observeAsState()
 
-    LaunchedEffect(key1 = Unit) {
+    LaunchedEffect(key1 = exerciseToPlay) {
         viewModel.load(exerciseToPlay)
     }
 
@@ -54,15 +54,11 @@ fun PlayExerciseView(exerciseToPlay: String) {
         while ((viewModel.countdownTimerValue.value ?: 0) > 0) {
             delay(1000L)
             viewModel.onCountdownTick()
-            //slide = viewModel.getSlide()
         }
     }
 
-    if (viewModel.showGoodWorkScreen) {
-        val context = LocalContext.current
-        Button(onClick = { (context as? Activity)?.finish() }) {
-            Text(text = "Good Work")
-        }
+    if (viewModel.isDoneWithExercise) {
+        onExerciseComplete()
     }
     else {
 

@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.LiveData
@@ -41,7 +40,7 @@ class PlayExerciseViewModel @Inject constructor(private val repo: ExerciseReposi
     private val _name = MutableLiveData<String>(exercise.name)
     val name: LiveData<String> = _name
 
-    var showGoodWorkScreen by mutableStateOf(false)
+    var isDoneWithExercise by mutableStateOf(false)
         private set
 
     fun load(fileName:String) {
@@ -84,7 +83,7 @@ class PlayExerciseViewModel @Inject constructor(private val repo: ExerciseReposi
         slideSwitchCountdown--
 
         if ((_countdownTimerValue.value ?: 1) <= 0 && slideSwitchCountdown <= 0){
-            showGoodWorkScreen = true
+            isDoneWithExercise = true
         }
         else
         if ((_countdownTimerValue.value ?: 1) <= 0){
