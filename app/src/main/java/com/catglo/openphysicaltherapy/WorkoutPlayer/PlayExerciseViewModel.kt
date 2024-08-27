@@ -2,6 +2,7 @@ package com.catglo.openphysicaltherapy.WorkoutPlayer
 
 import android.content.Context
 import android.net.Uri
+import android.speech.tts.TextToSpeech
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -17,11 +18,34 @@ import com.catglo.openphysicaltherapy.Data.InstructionalSlide
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class PlayExerciseViewModel @Inject constructor(private val repo: ExerciseRepository, @ApplicationContext val context: Context) : ViewModel() {
     private var exercise = Exercise("")
+
+    private  var  textToSpeech: TextToSpeech? = null
+
+    fun textToSpeech(text: String) {
+        textToSpeech = TextToSpeech(
+            context
+        ) {
+            if (it == TextToSpeech.SUCCESS) {
+                textToSpeech?.let { txtToSpeech ->
+                    txtToSpeech.language = Locale.US
+                    txtToSpeech.setSpeechRate(1.0f)
+                    txtToSpeech.speak(
+                        text,
+                        TextToSpeech.QUEUE_ADD,
+                        null,
+                        null
+                    )
+                }
+            }
+
+        }
+    }
 
     val currentStep = mutableIntStateOf(0)
     val currentSlide = mutableIntStateOf(0)
@@ -91,6 +115,7 @@ class PlayExerciseViewModel @Inject constructor(private val repo: ExerciseReposi
             currentSlide.intValue = 0
             instructionText = getSlide().text
             slideSwitchCountdown = getSlide().duration
+            textToSpeech(instructionText)
         }
         else if (slideSwitchCountdown <= 0){
             if (currentSlide.intValue < getExerciseSteps()[currentStep.intValue].slides.size-1) {
@@ -102,6 +127,7 @@ class PlayExerciseViewModel @Inject constructor(private val repo: ExerciseReposi
             }
             instructionText = getSlide().text
             slideSwitchCountdown = getSlide().duration
+            textToSpeech(instructionText)
         }
 
     }

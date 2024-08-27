@@ -35,6 +35,8 @@ import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.delay
+import android.speech.tts.TextToSpeech
+
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -48,6 +50,7 @@ fun PlayExerciseView(exerciseToPlay: String,
 
     LaunchedEffect(key1 = exerciseToPlay) {
         viewModel.load(exerciseToPlay)
+        viewModel.textToSpeech(viewModel.instructionText)
     }
 
     LaunchedEffect(key1 = viewModel.countdownTimerValue.value) {
