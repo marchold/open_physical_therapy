@@ -171,8 +171,13 @@ class MainActivity : ComponentActivity() {
 
 }
 
+//TODO: There is a bug deleting slides, the delete control is behind the number picker
+
 //TODO: Need an exercise intro screen for workouts: "Up next shoulder rows"
 //      Also probably need a list of materials like a band or whatever else you need
+
+//TODO: Make a common view for exercise list items and make those list items a little nicer
+//      by including total duration and reps and any other stats that work on that list view
 
 //TODO: Need to deal with exercise and workouts as zip files that can be exported and imported
 

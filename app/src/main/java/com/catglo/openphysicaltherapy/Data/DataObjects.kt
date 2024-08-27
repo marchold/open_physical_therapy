@@ -51,6 +51,17 @@ data class ExerciseStep(var numberOfReps: Int = 1,
 data class Exercise(var name: String,
                     var steps: MutableList<ExerciseStep> = mutableListOf(ExerciseStep()),
                     var fileName: String = "exercise_"+System.currentTimeMillis().toString())
+{
+    fun totalDuration():Int{
+        var total = 0
+        steps.forEach { step ->
+            step.slides.forEach { slide ->
+                total += slide.duration
+            }
+        }
+        return total
+    }
+}
 
 data class ExerciseListItem(var name: String, val fileName: String)
 
