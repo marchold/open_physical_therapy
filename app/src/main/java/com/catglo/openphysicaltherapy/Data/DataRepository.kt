@@ -10,6 +10,8 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.lang.reflect.Type
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
 interface WorkoutRepositoryInterface {
@@ -30,6 +32,7 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val jsonAdapter: JsonAdapter<Workout> = moshi.adapter(Workout::class.java)
         val file = file( fileName)
+        if (!file.exists()) return null
         val json = FileInputStream(file)
             .bufferedReader()
             .use {
@@ -119,6 +122,10 @@ interface ExerciseRepositoryInterface {
 
 class ExerciseRepository @Inject constructor(@ApplicationContext val context: Context) : ExerciseRepositoryInterface {
 
+    fun previewPath():File{
+        return path("exercise_preview")
+    }
+
     private fun path(fileName: String): File {
         val path = File(File(context.filesDir, "exercises"), fileName)
         if (!path.exists()) path.mkdirs()
@@ -149,7 +156,7 @@ class ExerciseRepository @Inject constructor(@ApplicationContext val context: Co
         val json: String = jsonAdapter.toJson(exercise)
         var outputFile : File
         if (forPreview) {
-            outputFile = path("exercise_preview")
+            outputFile = previewPath()
             if (outputFile.exists()) outputFile.deleteRecursively()
             outputFile.mkdirs()
             path(exercise.fileName).copyRecursively(outputFile)
@@ -216,4 +223,22 @@ class ExerciseRepository @Inject constructor(@ApplicationContext val context: Co
         saveExerciseList(filteredList)
     }
 
+}
+
+fun zipFolder(inputFolder: File, outputFile: File) {
+    ZipOutputStream(FileOutputStream(outputFile)).use { zipOutputStream ->
+        inputFolder.walkTopDown().forEach { file ->
+            val relativePath = file.relativeTo(inputFolder).path
+            if (file.isFile) {
+                zipOutputStream.putNextEntry(ZipEntry(relativePath))
+                FileInputStream(file).use { inputStream ->
+                    inputStream.copyTo(zipOutputStream)
+                }
+                zipOutputStream.closeEntry()
+            } else if (file.isDirectory && relativePath.isNotEmpty()) {
+                zipOutputStream.putNextEntry(ZipEntry("$relativePath/"))
+                zipOutputStream.closeEntry()
+            }
+        }
+    }
 }

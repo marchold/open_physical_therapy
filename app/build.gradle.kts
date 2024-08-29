@@ -79,6 +79,10 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.session)
+    implementation(libs.android.image.cropper)
+
+
+
     kapt(libs.hilt.android.compiler.v244)
 
     implementation(libs.androidx.hilt.common)

@@ -1,9 +1,14 @@
 package com.catglo.openphysicaltherapy.Widgets
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -37,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.catglo.openphysicaltherapy.ImageEditor
 import com.catglo.openphysicaltherapy.R
 import kotlinx.coroutines.launch
 import java.io.File
@@ -69,12 +75,25 @@ fun ImagePickCaptureButton(
             file
         )
     }
+    val activity = (LocalContext.current as Activity)
+
+    val startForResult =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val intent = result.data
+                intent?.getParcelableExtra<Uri>("Uri")?.let {
+                    onImageFilePicked(it)
+                }
+            }
+        }
 
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {
             it?.let {
-                onImageFilePicked(it)
+                startForResult.launch(Intent(activity, ImageEditor::class.java).apply {
+                    putExtra("Uri",it)
+                })
             }
         }
     )
@@ -83,7 +102,9 @@ fun ImagePickCaptureButton(
         contract = ActivityResultContracts.TakePicture(),
         onResult = { isSaved ->
             tempUri.value?.let {
-                onImageFilePicked(it)
+                startForResult.launch(Intent(activity, ImageEditor::class.java).apply {
+                    putExtra("Uri",it)
+                })
             }
         }
     )

@@ -171,6 +171,8 @@ class MainActivity : ComponentActivity() {
 
 }
 
+//TODO: Add a way to crop images on import
+
 //TODO: Keep track if any changes have been made and don't show the confirm discard alert if nothing changed
 
 //TODO: Add a list of materials like a band or whatever else you need to the workout and each

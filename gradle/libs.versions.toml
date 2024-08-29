@@ -39,6 +39,10 @@ exoplayer = "2.19.1"
 media3Ui = "1.4.0"
 media3Exoplayer = "1.4.0"
 media3Session = "1.4.0"
+composeCropper = "Tag"
+androidImageCropper = "4.6.0"
+imagecropview = "3.0.1"
+easycrop = "0.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -86,6 +90,9 @@ exoplayer = { group = "com.google.android.exoplayer", name = "exoplayer", versio
 androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3Ui" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3Exoplayer" }
 androidx-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3Session" }
+android-image-cropper = { group = "com.vanniktech", name = "android-image-cropper", version.ref = "androidImageCropper" }
+imagecropview = { group = "io.github.rroohit", name = "ImageCropView", version.ref = "imagecropview" }
+easycrop = { group = "io.github.mr0xf00", name = "easycrop", version.ref = "easycrop" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

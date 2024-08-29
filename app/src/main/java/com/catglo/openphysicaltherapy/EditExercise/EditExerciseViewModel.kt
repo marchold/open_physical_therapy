@@ -11,8 +11,14 @@ import com.catglo.openphysicaltherapy.Data.Exercise
 import com.catglo.openphysicaltherapy.Data.ExerciseListItem
 import com.catglo.openphysicaltherapy.Data.ExerciseRepository
 import com.catglo.openphysicaltherapy.Data.ExerciseStep
+import com.catglo.openphysicaltherapy.Data.zipFolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -84,5 +90,15 @@ open class EditExerciseViewModel @Inject constructor(private val repo: ExerciseR
         repo.saveExercise(exercise, true)
     }
 
+    fun exportExercise() : File {
+        repo.saveExercise(exercise, true)
+        val exportZipFileName = exercise.name
+            .replace(Regex("[\\\\/:\",.|\\s]+"),"_")
+        val exportFile = File(context.filesDir,exportZipFileName)
+        zipFolder(repo.previewPath(),exportFile)
+        return exportFile
+    }
+
 
 }
+

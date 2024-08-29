@@ -3,4 +3,7 @@
     <cache-path
         name="media"
         path="media/" />
+    <files-path
+        name="fileprovider"
+        path="/" />
 </paths>

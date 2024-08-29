@@ -1,6 +1,7 @@
 package com.catglo.openphysicaltherapy.WorkoutPlayer
 
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -33,9 +34,32 @@ import com.catglo.openphysicaltherapy.Data.WorkoutRepository
 import com.catglo.openphysicaltherapy.secondsToInterval
 import com.catglo.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 
 @AndroidEntryPoint
 class WorkoutPlayerActivity : ComponentActivity() {
+    private  var  textToSpeech: TextToSpeech? = null
+
+    fun textToSpeech(text: String) {
+        textToSpeech = TextToSpeech(
+            this
+        ) {
+            if (it == TextToSpeech.SUCCESS) {
+                textToSpeech?.let { txtToSpeech ->
+                    txtToSpeech.language = Locale.US
+                    txtToSpeech.setSpeechRate(1.0f)
+                    txtToSpeech.speak(
+                        text,
+                        TextToSpeech.QUEUE_ADD,
+                        null,
+                        null
+                    )
+                }
+            }
+
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val workoutToPlay = intent.getStringExtra("Workout")
@@ -47,8 +71,6 @@ class WorkoutPlayerActivity : ComponentActivity() {
         val workout = WorkoutRepository(this).getWorkout(workoutToPlay)
         val exercises = workout?.exercises ?: listOf()
 
-
-
         enableEdgeToEdge()
         setContent {
             var currentExerciseIndex by remember { mutableIntStateOf(0) }
@@ -59,7 +81,9 @@ class WorkoutPlayerActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(modifier = Modifier.padding(innerPadding)) {
                         if (showExerciseIntro) {
-                            ExerciseIntroView(exerciseToPlay = currentExerciseFileName) {
+                            ExerciseIntroView(exerciseToPlay = currentExerciseFileName, textToSpeech = {
+                                textToSpeech(it)
+                            }) {
                                 showExerciseIntro = false
                             }
                         }
@@ -83,8 +107,9 @@ class WorkoutPlayerActivity : ComponentActivity() {
 }
 
 @Composable
-fun ExerciseIntroView(exerciseToPlay: String, onOkClicked: () -> Unit) {
+fun ExerciseIntroView(exerciseToPlay: String, textToSpeech: ((text:String)->Unit)? = null, onOkClicked: () -> Unit) {
     val exercise = ExerciseRepository(LocalContext.current).getExercise(exerciseToPlay)
+    textToSpeech?.invoke("You're next exercise is ${exercise?.name}")
     Column(horizontalAlignment = Alignment.CenterHorizontally){
         Spacer(modifier = Modifier.height(50.dp))
         val name = exercise?.name ?: ""

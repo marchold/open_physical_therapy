@@ -1,9 +1,9 @@
 package com.catglo.openphysicaltherapy.EditExercise
 
+
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.ImageButton
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -31,12 +31,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -52,9 +53,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.catglo.openphysicaltherapy.Data.Exercise
-import com.catglo.openphysicaltherapy.Data.ExerciseRepository
 import com.catglo.openphysicaltherapy.R
 import com.catglo.openphysicaltherapy.Widgets.actionBarColors
 import com.catglo.openphysicaltherapy.WorkoutPlayer.ExercisePreviewActivity
@@ -91,43 +91,60 @@ class EditExerciseActivity() : ComponentActivity() {
             (exerciseViewModel.name.value?.length ?: 0) > 0
         ) }
 
-        val showConfirmDiscardAlert = remember { mutableStateOf( false ) }
-        if (showConfirmDiscardAlert.value){
-            AlertDialog(
-                onDismissRequest = { showConfirmDiscardAlert.value = false },
-                dismissButton = { Button(onClick = { showConfirmDiscardAlert.value = false }) { Text(text = "Cancel") } },
-                title={ Text("Discard Changes") },
-                text={ Text("Are you sure you want to exit without saving?") },
-                confirmButton = { Button(onClick = { finish() }) { Text(text = "Discard Changes") } }
-            )
-        }
-
-        var showConfirmDeleteStepAlert by remember { mutableStateOf( false ) }
-        var stepIndexToDelete by remember { mutableIntStateOf( 0 ) }
-        if (showConfirmDeleteStepAlert){
-            AlertDialog(
-                onDismissRequest = { showConfirmDeleteStepAlert = false },
-                dismissButton = { Button(onClick = { showConfirmDeleteStepAlert = false }) { Text(text = "Cancel") } },
-                title={ Text("Delete this step") },
-                text={ Text("Are you sure you want to remove this step?") },
-                confirmButton = { Button(onClick =
-                {
-                    val currentPage = stepIndexToDelete
-                    exerciseViewModel.removeStep(currentPage)
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(currentPage-1)
-                    }
-                    showConfirmDeleteStepAlert = false
-                }) { Text(text = "Delete Step") } }
-            )
-        }
-
+        
         OpenPhysicalTherapyTheme {
+            val showConfirmDiscardAlert = remember { mutableStateOf( false ) }
+            if (showConfirmDiscardAlert.value){
+                AlertDialog(
+                    onDismissRequest = { showConfirmDiscardAlert.value = false },
+                    dismissButton = { Button(onClick = { showConfirmDiscardAlert.value = false }) { Text(text = "Cancel") } },
+                    title={ Text("Discard Changes") },
+                    text={ Text("Are you sure you want to exit without saving?") },
+                    confirmButton = { Button(onClick = { finish() }) { Text(text = "Discard Changes") } }
+                )
+            }
+
+            var showConfirmDeleteStepAlert by remember { mutableStateOf( false ) }
+            var stepIndexToDelete by remember { mutableIntStateOf( 0 ) }
+            if (showConfirmDeleteStepAlert){
+                AlertDialog(
+                    onDismissRequest = { showConfirmDeleteStepAlert = false },
+                    dismissButton = { Button(onClick = { showConfirmDeleteStepAlert = false }) { Text(text = "Cancel") } },
+                    title={ Text("Delete this step") },
+                    text={ Text("Are you sure you want to remove this step?") },
+                    confirmButton = { Button(onClick =
+                    {
+                        val currentPage = stepIndexToDelete
+                        exerciseViewModel.removeStep(currentPage)
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(currentPage-1)
+                        }
+                        showConfirmDeleteStepAlert = false
+                    }) { Text(text = "Delete Step") } }
+                )
+            }
+
+            val scope = rememberCoroutineScope()
+            val exportBottomSheetState = rememberModalBottomSheetState()
+            var showExportBottomSheet by remember { mutableStateOf(false) }
+            if (showExportBottomSheet) {
+                ModalBottomSheet(onDismissRequest = {
+
+                }, sheetState = exportBottomSheetState) {
+                    Text("HAHA")
+                }
+            }
             Scaffold(
                 topBar = {
                     TopAppBar(
                         title = { Text("Edit Exercise") },
                         actions = {
+                            IconButton(onClick = {
+                                showExportBottomSheet = true
+                            }) {
+                                Icon(imageVector = ImageVector.vectorResource(R.drawable.icon_export),
+                                    contentDescription = "Export")
+                            }
                             IconButton(onClick = {
                                 exerciseViewModel.saveForPreview()
                                 startActivity(
@@ -255,6 +272,25 @@ class EditExerciseActivity() : ComponentActivity() {
                 }
             )
         }
+    }
+
+   
+    private fun ExportExercise(exerciseViewModel: EditExerciseViewModel) {
+        val exportZipFile = FileProvider
+            .getUriForFile(
+                applicationContext,
+                "$packageName.fileprovider",
+                exerciseViewModel.exportExercise())
+        val shareIntent = Intent()
+        shareIntent.setAction(Intent.ACTION_SEND)
+        shareIntent.putExtra(Intent.EXTRA_STREAM, exportZipFile)
+        shareIntent.setType("application/zip")
+        startActivity(
+            Intent.createChooser(
+                shareIntent,
+                "Send to"
+            )
+        )
     }
 }
 

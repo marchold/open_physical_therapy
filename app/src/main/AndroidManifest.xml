@@ -27,6 +27,9 @@
         android:theme="@style/Theme.OpenPhysicalTherapy"
         tools:targetApi="31">
         <activity
+            android:name=".ImageEditor"
+            android:exported="false" />
+        <activity
             android:name=".WorkoutPlayer.ExercisePreviewActivity"
             android:exported="false"
             android:label="@string/title_activity_exercize_preview"
@@ -59,6 +62,15 @@
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="@string/fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

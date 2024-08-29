@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.catglo.openphysicaltherapy.Data.InstructionalSlide
@@ -63,6 +64,8 @@ class InstructionalSlideViewModel(private val exerciseFileName:String, private v
     fun getImageFile():File? {
         return slide.getImageFile(exerciseFileName, application)
     }
+
+    val mediaUriKey = mutableStateOf("1")
 
     fun hasVisualMedia():Boolean{
         return (slide.imageFileName != null || slide.videoFileName != null)
