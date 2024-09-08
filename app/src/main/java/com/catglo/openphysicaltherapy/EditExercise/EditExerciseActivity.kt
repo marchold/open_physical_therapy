@@ -1,12 +1,17 @@
 package com.catglo.openphysicaltherapy.EditExercise
 
 
+import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -54,6 +60,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
+import androidx.core.net.toFile
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.catglo.openphysicaltherapy.R
 import com.catglo.openphysicaltherapy.Widgets.actionBarColors
@@ -61,6 +68,8 @@ import com.catglo.openphysicaltherapy.WorkoutPlayer.ExercisePreviewActivity
 import com.catglo.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 
 @AndroidEntryPoint
@@ -131,7 +140,14 @@ class EditExerciseActivity() : ComponentActivity() {
                 ModalBottomSheet(onDismissRequest = {
 
                 }, sheetState = exportBottomSheetState) {
-                    Text("HAHA")
+                    Column {
+                        TextButton(onClick = { exportToDocumentsFolder(exerciseViewModel) }) {
+                            Text("Save to documents folder")
+                        }
+                        TextButton(onClick = { exportToShareIntent(exerciseViewModel) }) {
+                            Text("Share to other apps")
+                        }
+                    }
                 }
             }
             Scaffold(
@@ -274,8 +290,25 @@ class EditExerciseActivity() : ComponentActivity() {
         }
     }
 
-   
-    private fun ExportExercise(exerciseViewModel: EditExerciseViewModel) {
+
+
+    private var exportFile: File? = null
+    private val createFileLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { exportFileUri ->
+            exportFileUri?.let { outputUri ->
+                contentResolver.openOutputStream(outputUri)?.let { outputStream ->
+                    exportFile?.inputStream()?.copyTo(outputStream)
+                }
+            }
+        }
+
+    private fun exportToDocumentsFolder(exerciseViewModel: EditExerciseViewModel) {
+        createFileLauncher.launch("suggestedFileName")
+        exportFile = exerciseViewModel.exportExercise()
+    }
+
+
+    private fun exportToShareIntent(exerciseViewModel: EditExerciseViewModel) {
         val exportZipFile = FileProvider
             .getUriForFile(
                 applicationContext,

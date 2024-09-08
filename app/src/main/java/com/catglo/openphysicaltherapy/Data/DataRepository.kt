@@ -2,10 +2,12 @@ package com.catglo.openphysicaltherapy.Data
 
 import android.content.Context
 import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
+import okio.Buffer
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -150,9 +152,26 @@ class ExerciseRepository @Inject constructor(@ApplicationContext val context: Co
         return exercise
     }
 
+    fun cleanup(exercise: Exercise){
+        val usedFiles = mutableListOf<String>()
+        exercise.steps.forEach { step ->
+            step.slides.forEach { slide ->
+                slide.videoFileName?.let { usedFiles.add(it) }
+                slide.imageFileName?.let { usedFiles.add(it) }
+                slide.audioFileName?.let { usedFiles.add(it) }
+            }
+        }
+        usedFiles.add(exercise.fileName)
+        path(exercise.fileName).listFiles()?.forEach { file ->
+            if (!usedFiles.contains(file.name)) {
+                file.delete()
+            }
+        }
+    }
+
     override fun saveExercise(exercise: Exercise, forPreview: Boolean) {
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-        val jsonAdapter: JsonAdapter<Exercise> = moshi.adapter(Exercise::class.java)
+        val jsonAdapter: JsonAdapter<Exercise> = moshi.adapter(Exercise::class.java).indent("    ")
         val json: String = jsonAdapter.toJson(exercise)
         var outputFile : File
         if (forPreview) {

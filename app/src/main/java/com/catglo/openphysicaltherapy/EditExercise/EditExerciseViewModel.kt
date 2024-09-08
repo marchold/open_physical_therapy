@@ -91,6 +91,7 @@ open class EditExerciseViewModel @Inject constructor(private val repo: ExerciseR
     }
 
     fun exportExercise() : File {
+        repo.cleanup(exercise)
         repo.saveExercise(exercise, true)
         val exportZipFileName = exercise.name
             .replace(Regex("[\\\\/:\",.|\\s]+"),"_")
