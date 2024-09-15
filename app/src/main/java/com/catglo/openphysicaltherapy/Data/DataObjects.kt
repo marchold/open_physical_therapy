@@ -69,7 +69,13 @@ data class Exercise(var name: String,
         }
         return totalNumberOfReps
     }
+
+    fun prettyFileName(): String {
+        return name.replace(Regex("[\\\\/:\",.|\\s]+"),"_")
+    }
 }
+
+data class ExerciseNameConflict(val newExercise: Exercise, val oldExercise: ExerciseListItem?)
 
 data class ExerciseListItem(var name: String, val fileName: String)
 

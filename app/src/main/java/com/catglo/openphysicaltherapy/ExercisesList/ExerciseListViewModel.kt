@@ -1,10 +1,13 @@
 package com.catglo.openphysicaltherapy.ExercisesList
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
+import com.catglo.openphysicaltherapy.Data.Exercise
 import com.catglo.openphysicaltherapy.Data.ExerciseListItem
+import com.catglo.openphysicaltherapy.Data.ExerciseNameConflict
 import com.catglo.openphysicaltherapy.Data.ExerciseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,9 +25,9 @@ class ExerciseListViewModel @Inject constructor(private val repo: ExerciseReposi
             listItems.add(exerciseListItem)
         }
     }
-    fun deleteExercise(name:String){
-        repo.deleteExercise(name)
-        listItems.removeIf { it.name == name }
+    fun deleteExercise(fileName:String){
+        repo.deleteExercise(fileName)
+        listItems.removeIf { it.fileName == fileName }
     }
     fun getExercise(index: Int): ExerciseListItem {
         return ExerciseListItem(listItems[index].name,listItems[index].fileName)
@@ -32,5 +35,18 @@ class ExerciseListViewModel @Inject constructor(private val repo: ExerciseReposi
 
     fun getExercises(): SnapshotStateList<ExerciseListItem> {
         return listItems
+    }
+
+    fun importExercise(importZipFileUri: Uri): ExerciseNameConflict? {
+        return repo.importExercise(importZipFileUri)
+    }
+
+    fun renameExercise(exercise: Exercise) {
+        repo.renameExercise(exercise)
+        listItems.forEachIndexed { index, exerciseListItem ->
+            if (exerciseListItem.fileName == exercise.fileName){
+                exerciseListItem.name = exercise.name
+            }
+        }
     }
 }

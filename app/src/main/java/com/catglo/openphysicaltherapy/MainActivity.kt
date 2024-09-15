@@ -171,14 +171,13 @@ class MainActivity : ComponentActivity() {
 
 }
 
-//TODO: Add a way to crop images on import
 
 //TODO: Keep track if any changes have been made and don't show the confirm discard alert if nothing changed
 
 //TODO: Add a list of materials like a band or whatever else you need to the workout and each
 //      exercise screen
 
-//TODO: Need to deal with exercise and workouts as zip files that can be exported and imported
+//TODO: Need to deal with workouts as zip files that can be exported and imported
 
 //TODO: When exporting a workout include all its exercises
 
@@ -194,8 +193,6 @@ class MainActivity : ComponentActivity() {
 //      https://stackoverflow.com/questions/73331594/how-can-i-show-a-composable-on-top-of-the-visible-keyboard
 //      This would include:
 //          For the text an option to read it with text to speech or display it
-
-//TODO: Text to speech for exercise instructions
 
 //TODO: Would be good to have exercise body parts with icons
 

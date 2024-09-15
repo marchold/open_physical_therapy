@@ -303,7 +303,7 @@ class EditExerciseActivity() : ComponentActivity() {
         }
 
     private fun exportToDocumentsFolder(exerciseViewModel: EditExerciseViewModel) {
-        createFileLauncher.launch("suggestedFileName")
+        createFileLauncher.launch(exerciseViewModel.prettyFileName())
         exportFile = exerciseViewModel.exportExercise()
     }
 

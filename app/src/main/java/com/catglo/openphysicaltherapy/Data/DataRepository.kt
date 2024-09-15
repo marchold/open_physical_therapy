@@ -1,6 +1,8 @@
 package com.catglo.openphysicaltherapy.Data
 
 import android.content.Context
+import android.net.Uri
+import android.util.Log
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
@@ -13,6 +15,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.lang.reflect.Type
 import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
@@ -242,6 +245,78 @@ class ExerciseRepository @Inject constructor(@ApplicationContext val context: Co
         saveExerciseList(filteredList)
     }
 
+    fun importExercise(importZipFileUri: Uri): ExerciseNameConflict? {
+        val outputFolder = File(context.filesDir, "exercise_import")
+        outputFolder.deleteRecursively()
+        outputFolder.mkdirs()
+        context.contentResolver.openInputStream(importZipFileUri)?.let { inputStream ->
+            ZipInputStream(inputStream).use { zipInputStream ->
+                var entry = zipInputStream.nextEntry
+                while (entry != null) {
+                    val file = File(outputFolder, entry.name)
+                    zipInputStream.copyTo(FileOutputStream(file))
+                    entry = zipInputStream.nextEntry
+                }
+            }
+        }
+        val fileName = "exercise_"+System.currentTimeMillis().toString()
+        File(outputFolder,"exercise_preview-index.json")
+            .renameTo(File(outputFolder, "${fileName}-index.json"))
+        val renameFolderTo = File(File(outputFolder.parentFile,"exercises"),fileName)
+        outputFolder.renameTo(renameFolderTo)
+
+        val repo = ExerciseRepository(context)
+        val exercise = repo.getExercise(fileName)
+        val exerciseList = repo.getExerciseList()
+        var conflictExercise:ExerciseListItem? = null
+        exerciseList.forEach { exerciseListItem ->
+            if (exerciseListItem.name == exercise?.name) {
+                conflictExercise = exerciseListItem
+            }
+        }
+        exercise?.let {
+            repo.saveExercise(it)
+            if (conflictExercise!=null){
+                return ExerciseNameConflict(exercise, conflictExercise)
+            }
+        }
+        return null
+    }
+
+    fun renameExercise(exercise: Exercise) {
+        //Look through all the exercises for ones with this name
+        //but with a number appended like (2)
+        //Count the number appended and generate a new name with one bigger number
+        val findNameNumber = Regex("${exercise.name}\\((\\d+)\\)$")
+        val exerciseList = getExerciseList()
+        var count = 0
+        var isDuplicate = false
+        exerciseList.forEach { exerciseListItem ->
+            if (exerciseListItem.name == exercise.name) isDuplicate = true
+            findNameNumber.find(exerciseListItem.name).let { matchResult ->
+                matchResult?.groups?.get(1)?.value?.toIntOrNull()?.let { counter ->
+                    if (counter > count) {
+                        count = counter
+                        isDuplicate = true
+                    }
+                }
+            }
+        }
+        if (isDuplicate){
+            count += 1
+            exercise.name = "${exercise.name}($count)"
+
+            for (i : Int in 0..exerciseList.size - 1){
+                if (exerciseList[i].fileName == exercise.fileName){
+                    exerciseList[i].name = exercise.name
+                }
+            }
+            saveExerciseList(exerciseList)
+            saveExercise(exercise)
+        }
+
+    }
+
 }
 
 fun zipFolder(inputFolder: File, outputFile: File) {
@@ -257,6 +332,16 @@ fun zipFolder(inputFolder: File, outputFile: File) {
             } else if (file.isDirectory && relativePath.isNotEmpty()) {
                 zipOutputStream.putNextEntry(ZipEntry("$relativePath/"))
                 zipOutputStream.closeEntry()
+            }
+        }
+    }
+
+    fun unzipFolder(zipFile: File, outputFolder: File) {
+        ZipInputStream(FileInputStream(zipFile)).use { zipInputStream ->
+            val entry = zipInputStream.nextEntry
+            while (entry != null) {
+                val file = File(outputFolder, entry.name)
+                zipInputStream.copyTo(FileOutputStream(file))
             }
         }
     }
