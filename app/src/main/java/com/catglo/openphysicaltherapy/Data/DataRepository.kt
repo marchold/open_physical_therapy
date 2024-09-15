@@ -3,21 +3,22 @@ package com.catglo.openphysicaltherapy.Data
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import com.catglo.openphysicaltherapy.toValidFileName
 import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
-import okio.Buffer
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.lang.reflect.Type
+import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
+
 
 interface WorkoutRepositoryInterface {
     fun getWorkout(fileName: String): Workout?
@@ -115,6 +116,90 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
         val list = getWorkoutList().toMutableList()
         val filteredList = list.filter { it.fileName != fileName }
         saveWorkoutList(filteredList)
+    }
+
+    fun importWorkout(importZipFileUri: Uri): WorkoutNameConflict? {
+        val outputFolder = File(context.filesDir, "workout_import")
+        outputFolder.deleteRecursively()
+        outputFolder.mkdirs()
+        context.contentResolver.openInputStream(importZipFileUri)?.let { inputStream ->
+            ZipInputStream(inputStream).use { zipInputStream ->
+                var entry = zipInputStream.nextEntry
+                while (entry != null) {
+                    val file = File(outputFolder, entry.name)
+                    zipInputStream.copyTo(FileOutputStream(file))
+                    entry = zipInputStream.nextEntry
+                }
+            }
+        }
+        val fileName =  "workout_"+System.currentTimeMillis().toString()
+        File(outputFolder,"workout_preview-index.json")
+            .renameTo(File(outputFolder, "${fileName}-index.json"))
+        val renameFolderTo = File(File(outputFolder.parentFile,"workouts"),fileName)
+        outputFolder.renameTo(renameFolderTo)
+
+        val repo = WorkoutRepository(context)
+        val workout = repo.getWorkout(fileName)
+        val workoutList = repo.getWorkoutList()
+        var conflictWorkout:WorkoutListItem? = null
+        workoutList.forEach { workoutListItem ->
+            if (workoutListItem.name == workout?.name) {
+                conflictWorkout = workoutListItem
+            }
+        }
+
+        val exerciseRepo = ExerciseRepository(context)
+        val exerciseNameConflicts = mutableListOf<ExerciseNameConflict>()
+        outputFolder.listFiles { _, name ->
+            name.lowercase(Locale.getDefault()).endsWith(".zip")
+        }?.forEach { exerciseZipFile ->
+            //Here I should have each imported zipped exercise file.
+            //I need to both associate it with the exercise in the workout list
+            //and then import it as an exercise.
+            //Then I need to add each exercise with a name conflict to the return value
+            //Eventually some UI will need to determine replace or keep both behavior
+            //and rename all the exercises update all the workouts when an exercise is being
+            //replaced
+            exerciseRepo.importExercise(Uri.fromFile(exerciseZipFile))?.let { exerciseNameConflict ->
+                if (exerciseNameConflict.oldExercise!=null) exerciseNameConflicts.add(exerciseNameConflict)
+                //Need to make sure the exercise file name in the list matches the imported one
+                Log.i("ex","")
+            }
+
+        }
+
+
+
+
+
+//        workout?.let {
+//            repo.saveWorkout(it)
+//            if (conflictWorkout!=null){
+//                return WorkoutNameConflict(exercise, conflictExercise)
+//            }
+//        }
+        return null
+    }
+
+    fun exportWorkout(workout: Workout): File {
+        //repo.cleanup(workout)
+        saveWorkout(workout, true)
+        val exportZipFileName = workout.name.toValidFileName()
+        val exportZipFile = File(context.filesDir,exportZipFileName)
+
+        val stagingFolder = file("workout_preview")
+
+        //Copy all of this workouts exercises as zip files to this folder
+        val exerciseRepo = ExerciseRepository(context)
+        workout.exercises.forEach { exercise ->
+            exerciseRepo.getExercise(exercise.fileName)?.let {
+                val exportedExerciseZipFile = exerciseRepo.exportExercise(it)
+                exportedExerciseZipFile.renameTo(File(stagingFolder,it.fileName + ".zip"))
+            }
+        }
+
+        zipFolder(file("workout_preview"),exportZipFile)
+        return exportZipFile
     }
 }
 
@@ -276,9 +361,7 @@ class ExerciseRepository @Inject constructor(@ApplicationContext val context: Co
         }
         exercise?.let {
             repo.saveExercise(it)
-            if (conflictExercise!=null){
-                return ExerciseNameConflict(exercise, conflictExercise)
-            }
+            return ExerciseNameConflict(exercise, conflictExercise)
         }
         return null
     }
@@ -315,6 +398,15 @@ class ExerciseRepository @Inject constructor(@ApplicationContext val context: Co
             saveExercise(exercise)
         }
 
+    }
+
+    fun exportExercise(exercise: Exercise): File {
+        cleanup(exercise)
+        saveExercise(exercise, true)
+        val exportZipFileName = exercise.prettyFileName()
+        val exportFile = File(context.filesDir,exportZipFileName + ".zip")
+        zipFolder(previewPath(),exportFile)
+        return exportFile
     }
 
 }

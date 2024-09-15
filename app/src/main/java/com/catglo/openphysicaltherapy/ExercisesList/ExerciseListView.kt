@@ -45,7 +45,7 @@ fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
         it?.let {
             exerciseListViewModel.importExercise(it)?.let { exerciseConflict ->
-                openConflictResolveAlert = true
+                if (exerciseConflict.oldExercise != null) openConflictResolveAlert = true
                 conflict = exerciseConflict
             }
         }

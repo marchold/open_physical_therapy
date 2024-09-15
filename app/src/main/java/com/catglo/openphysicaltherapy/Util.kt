@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModelProvider
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
+fun String.toValidFileName():String{
+    return replace(Regex("[\\\\/:\",.|\\s]+"),"_")
+}
 
 inline fun <VM : ViewModel> viewModelFactory(crossinline f: () -> VM) =
     object : ViewModelProvider.Factory {

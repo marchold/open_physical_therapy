@@ -1,12 +1,15 @@
 package com.catglo.openphysicaltherapy.WorkoutList
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import com.catglo.openphysicaltherapy.Data.ExerciseListItem
+import com.catglo.openphysicaltherapy.Data.ExerciseNameConflict
 import com.catglo.openphysicaltherapy.Data.ExerciseRepository
 import com.catglo.openphysicaltherapy.Data.WorkoutListItem
+import com.catglo.openphysicaltherapy.Data.WorkoutNameConflict
 import com.catglo.openphysicaltherapy.Data.WorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -34,5 +37,9 @@ class WorkoutListViewModel @Inject constructor(private val repo: WorkoutReposito
 
     fun getWorkouts(): SnapshotStateList<WorkoutListItem> {
         return listItems
+    }
+
+    fun importWorkout(importZipFileUri: Uri): WorkoutNameConflict? {
+        return repo.importWorkout(importZipFileUri)
     }
 }

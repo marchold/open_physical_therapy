@@ -2,6 +2,7 @@ package com.catglo.openphysicaltherapy.Data
 
 import android.content.Context
 import android.net.Uri
+import com.catglo.openphysicaltherapy.toValidFileName
 import java.io.File
 
 data class InstructionalSlide(var text: String = "",
@@ -71,9 +72,11 @@ data class Exercise(var name: String,
     }
 
     fun prettyFileName(): String {
-        return name.replace(Regex("[\\\\/:\",.|\\s]+"),"_")
+        return name.toValidFileName()
     }
 }
+
+
 
 data class ExerciseNameConflict(val newExercise: Exercise, val oldExercise: ExerciseListItem?)
 
@@ -84,3 +87,8 @@ data class Workout(var name: String,
                    var fileName: String = "workout_"+System.currentTimeMillis().toString())
 
 data class WorkoutListItem(var name: String, val fileName: String)
+
+
+data class WorkoutNameConflict(val newWorkout: Workout,
+                               val oldWorkout: WorkoutListItem?,
+                               val exerciseConflicts: List<ExerciseNameConflict>)

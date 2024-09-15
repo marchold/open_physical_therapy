@@ -10,8 +10,10 @@ import com.catglo.openphysicaltherapy.Data.Workout
 import com.catglo.openphysicaltherapy.Data.ExerciseListItem
 import com.catglo.openphysicaltherapy.Data.WorkoutListItem
 import com.catglo.openphysicaltherapy.Data.WorkoutRepository
+import com.catglo.openphysicaltherapy.Data.zipFolder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -55,6 +57,11 @@ class EditWorkoutViewModel @Inject constructor(private val repo: WorkoutReposito
     fun saveForPreview(){
         repo.saveWorkout(workout, true)
     }
+
+    fun exportWorkout() : File {
+        return repo.exportWorkout(workout)
+    }
+
 
     fun load(fileName:String) {
         repo.getWorkout(fileName)?.let {

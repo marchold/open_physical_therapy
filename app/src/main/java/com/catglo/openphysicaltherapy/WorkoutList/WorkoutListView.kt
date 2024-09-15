@@ -2,6 +2,8 @@ package com.catglo.openphysicaltherapy.WorkoutList
 
 
 import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -37,6 +39,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
+import com.catglo.openphysicaltherapy.Data.ExerciseNameConflict
+import com.catglo.openphysicaltherapy.Data.WorkoutNameConflict
 import com.catglo.openphysicaltherapy.EditWorkout.EditWorkoutActivity
 import com.catglo.openphysicaltherapy.R
 import com.catglo.openphysicaltherapy.Widgets.DismissBackground
@@ -82,6 +86,18 @@ fun WorkoutsListView(workoutsListViewModel: WorkoutListViewModel) {
             }
         )
     }
+
+    var openConflictResolveAlert by remember { mutableStateOf(false)  }
+    var conflict by remember { mutableStateOf<WorkoutNameConflict?>(null) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
+        it?.let {
+            workoutsListViewModel.importWorkout(it)?.let { workoutNameConflict ->
+                openConflictResolveAlert = true
+                conflict = workoutNameConflict
+            }
+        }
+    }
+
     Scaffold(
         floatingActionButton = {
             MultiFloatingActionButton(

@@ -91,12 +91,7 @@ open class EditExerciseViewModel @Inject constructor(private val repo: ExerciseR
     }
 
     fun exportExercise() : File {
-        repo.cleanup(exercise)
-        repo.saveExercise(exercise, true)
-        val exportZipFileName = exercise.prettyFileName()
-        val exportFile = File(context.filesDir,exportZipFileName)
-        zipFolder(repo.previewPath(),exportFile)
-        return exportFile
+        return repo.exportExercise(exercise)
     }
 
     fun prettyFileName(): String {
