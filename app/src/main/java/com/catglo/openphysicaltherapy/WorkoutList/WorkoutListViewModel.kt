@@ -5,9 +5,7 @@ import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
-import com.catglo.openphysicaltherapy.Data.ExerciseListItem
-import com.catglo.openphysicaltherapy.Data.ExerciseNameConflict
-import com.catglo.openphysicaltherapy.Data.ExerciseRepository
+import com.catglo.openphysicaltherapy.Data.Workout
 import com.catglo.openphysicaltherapy.Data.WorkoutListItem
 import com.catglo.openphysicaltherapy.Data.WorkoutNameConflict
 import com.catglo.openphysicaltherapy.Data.WorkoutRepository
@@ -27,9 +25,9 @@ class WorkoutListViewModel @Inject constructor(private val repo: WorkoutReposito
             listItems.add(workoutListIten)
         }
     }
-    fun deleteExercise(name:String){
-        repo.deleteWorkout(name)
-        listItems.removeIf { it.name == name }
+    fun deleteWorkout(fileName:String){
+        repo.deleteWorkout(fileName)
+        listItems.removeIf { it.fileName == fileName }
     }
     fun getWorkout(index: Int): WorkoutListItem {
         return WorkoutListItem(listItems[index].name,listItems[index].fileName)
@@ -42,4 +40,14 @@ class WorkoutListViewModel @Inject constructor(private val repo: WorkoutReposito
     fun importWorkout(importZipFileUri: Uri): WorkoutNameConflict? {
         return repo.importWorkout(importZipFileUri)
     }
+
+    fun renameWorkout(workout: Workout) {//this one is loosing the existing ones when it saves the list
+        repo.renameWorkout(workout)
+        listItems.forEachIndexed { _, workoutListItem ->
+            if (workoutListItem.fileName == workout.fileName){
+                workoutListItem.name = workout.name
+            }
+        }
+    }
+
 }

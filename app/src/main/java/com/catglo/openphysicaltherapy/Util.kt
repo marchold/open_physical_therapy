@@ -27,3 +27,34 @@ fun Int.secondsToInterval(): String {
     }
     return String.format(Locale.ROOT, "%02d:%02d:%02d", hr, min, sec)
 }
+
+fun findNextNameNumber(baseNameParam:String, size:()->Int, name:(index:Int)->String):String{
+    var baseName = baseNameParam
+    val findNameNumber = Regex("\\((\\d+)\\)$")
+    findNameNumber.find(baseName)?.groups?.get(1)?.range?.start?.let {
+        baseName = baseName.substring(0,it-1).trim() //TODO: Use trimCounter extension
+    }
+    var isDuplicate = false
+    var count = 0
+    for (i in 0..<size()){
+        val thisName = name(i)
+        if (thisName == baseName){
+            isDuplicate = true
+        }
+        else if (thisName.startsWith(baseName)){
+            val nameCounter = findNameNumber.find(thisName)?.groups?.get(1)?.value?.toIntOrNull()
+            if (nameCounter!=null){
+                if (nameCounter > count) {
+                    count = nameCounter
+                }
+            }
+        }
+    }
+    if (count == 0 && isDuplicate){
+        return "$baseName(2)"
+    }
+    if (count > 0){
+        return "$baseName(${count+1})"
+    }
+    return baseName
+}

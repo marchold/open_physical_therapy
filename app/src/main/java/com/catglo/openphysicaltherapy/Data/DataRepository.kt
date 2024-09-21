@@ -3,6 +3,7 @@ package com.catglo.openphysicaltherapy.Data
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import com.catglo.openphysicaltherapy.findNextNameNumber
 import com.catglo.openphysicaltherapy.toValidFileName
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
@@ -12,8 +13,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.FilenameFilter
 import java.lang.reflect.Type
-import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -22,7 +23,7 @@ import javax.inject.Inject
 
 interface WorkoutRepositoryInterface {
     fun getWorkout(fileName: String): Workout?
-    fun saveWorkout(workout: Workout, forPreview: Boolean=false)
+    fun saveWorkout(workout: Workout, forPreview: Boolean=false):File
     fun getWorkoutList():List<WorkoutListItem>
     fun deleteWorkout(fileName: String)
 }
@@ -45,10 +46,12 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
                 it.readText()
             }
         val workout = jsonAdapter.fromJson(json)
+        workout?.exercises?.forEach { Log.i("workout","${it.name} ${it.fileName}") }
+
         return workout
     }
 
-    override fun saveWorkout(workout: Workout, forPreview: Boolean) {
+    override fun saveWorkout(workout: Workout, forPreview: Boolean) : File {
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val jsonAdapter: JsonAdapter<Workout> = moshi.adapter(Workout::class.java)
         val json: String = jsonAdapter.toJson(workout)
@@ -57,6 +60,7 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
         } else {
             file(workout.fileName)
         }
+        outputFile.deleteRecursively()
         FileOutputStream(outputFile).use {
             it.write(json.toByteArray())
         }
@@ -74,6 +78,7 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
             }
             saveWorkoutList(list)
         }
+        return outputFile
     }
 
     override fun getWorkoutList() : List<WorkoutListItem> {
@@ -119,7 +124,7 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
     }
 
     fun importWorkout(importZipFileUri: Uri): WorkoutNameConflict? {
-        val outputFolder = File(context.filesDir, "workout_import")
+        val outputFolder = File(context.cacheDir, "workout_import")
         outputFolder.deleteRecursively()
         outputFolder.mkdirs()
         context.contentResolver.openInputStream(importZipFileUri)?.let { inputStream ->
@@ -127,79 +132,87 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
                 var entry = zipInputStream.nextEntry
                 while (entry != null) {
                     val file = File(outputFolder, entry.name)
-                    zipInputStream.copyTo(FileOutputStream(file))
+                    Log.i("Workout Import","Unzip  ${entry.name}")
+                    if (zipInputStream.copyTo(FileOutputStream(file))==0L){
+                        Log.e("Workout Import","Failed to copy unzipped file ${entry.name}")
+                    }
                     entry = zipInputStream.nextEntry
                 }
             }
         }
-        val fileName =  "workout_"+System.currentTimeMillis().toString()
-        File(outputFolder,"workout_preview-index.json")
-            .renameTo(File(outputFolder, "${fileName}-index.json"))
-        val renameFolderTo = File(File(outputFolder.parentFile,"workouts"),fileName)
-        outputFolder.renameTo(renameFolderTo)
 
-        val repo = WorkoutRepository(context)
-        val workout = repo.getWorkout(fileName)
-        val workoutList = repo.getWorkoutList()
+        val oldJsonFileName = outputFolder.listFiles(FilenameFilter { dir, name -> name.endsWith(".json") })?.first()
+        val newFileName = "workout_"+System.currentTimeMillis().toString()
+        val newJsonFileName =  file(newFileName)
+        oldJsonFileName?.renameTo(newJsonFileName)
+
+        val workout = getWorkout(newFileName)
+        val workoutList = getWorkoutList()
         var conflictWorkout:WorkoutListItem? = null
         workoutList.forEach { workoutListItem ->
-            if (workoutListItem.name == workout?.name) {
+            if (workoutListItem.name.trimCounter() == workout?.name?.trimCounter()) {
                 conflictWorkout = workoutListItem
             }
         }
 
         val exerciseRepo = ExerciseRepository(context)
         val exerciseNameConflicts = mutableListOf<ExerciseNameConflict>()
-        outputFolder.listFiles { _, name ->
-            name.lowercase(Locale.getDefault()).endsWith(".zip")
-        }?.forEach { exerciseZipFile ->
-            //Here I should have each imported zipped exercise file.
-            //I need to both associate it with the exercise in the workout list
-            //and then import it as an exercise.
-            //Then I need to add each exercise with a name conflict to the return value
-            //Eventually some UI will need to determine replace or keep both behavior
-            //and rename all the exercises update all the workouts when an exercise is being
-            //replaced
-            exerciseRepo.importExercise(Uri.fromFile(exerciseZipFile))?.let { exerciseNameConflict ->
-                if (exerciseNameConflict.oldExercise!=null) exerciseNameConflicts.add(exerciseNameConflict)
-                //Need to make sure the exercise file name in the list matches the imported one
-                Log.i("ex","")
-            }
 
+        workout?.exercises?.forEach { exercise ->
+            val exerciseZipFile = File(outputFolder, exercise.fileName + ".zip")
+            val importedExercise = exerciseRepo.importExercise(Uri.fromFile(exerciseZipFile))
+            importedExercise?.newExercise?.fileName?.let {
+                exercise.fileName = it
+            }
+            if (importedExercise?.existingNameConflictExercise!=null) exerciseNameConflicts.add(importedExercise)
         }
 
-
-
-
-
-//        workout?.let {
-//            repo.saveWorkout(it)
-//            if (conflictWorkout!=null){
-//                return WorkoutNameConflict(exercise, conflictExercise)
-//            }
-//        }
+        workout?.let {
+            workout.fileName = newFileName
+            saveWorkout(it)
+            return WorkoutNameConflict(workout, conflictWorkout, exerciseNameConflicts)
+        }
         return null
     }
 
     fun exportWorkout(workout: Workout): File {
-        //repo.cleanup(workout)
-        saveWorkout(workout, true)
+        val workoutJsonFile = saveWorkout(workout, true)
         val exportZipFileName = workout.name.toValidFileName()
         val exportZipFile = File(context.filesDir,exportZipFileName)
 
-        val stagingFolder = file("workout_preview")
+        val stagingFolder = File(context.cacheDir,"workout_export")
+        stagingFolder.deleteRecursively()
+        stagingFolder.mkdir()
 
         //Copy all of this workouts exercises as zip files to this folder
         val exerciseRepo = ExerciseRepository(context)
         workout.exercises.forEach { exercise ->
             exerciseRepo.getExercise(exercise.fileName)?.let {
                 val exportedExerciseZipFile = exerciseRepo.exportExercise(it)
-                exportedExerciseZipFile.renameTo(File(stagingFolder,it.fileName + ".zip"))
+                if (!exportedExerciseZipFile.renameTo(File(stagingFolder,it.fileName + ".zip"))){
+                    Log.e("WorkoutRepo","Failed to rename file")
+                }
             }
         }
 
-        zipFolder(file("workout_preview"),exportZipFile)
+        workoutJsonFile.copyTo(File(stagingFolder, "$exportZipFileName.json"))
+        zipFolder(stagingFolder,exportZipFile)
         return exportZipFile
+    }
+
+    fun renameWorkout(workout: Workout) {
+        val workoutList = getWorkoutList()
+        val newName = findNextNameNumber(workout.name, { workoutList.size }, { workoutList[it].name })
+        if (newName != workout.name) {
+            workout.name = newName
+            for (i in 0..<workoutList.size){
+                if (workoutList[i].fileName == workout.fileName){
+                    workoutList[i].name = workout.name
+                }
+            }
+            saveWorkoutList(workoutList)
+            saveWorkout(workout)
+        }
     }
 }
 
@@ -230,6 +243,10 @@ class ExerciseRepository @Inject constructor(@ApplicationContext val context: Co
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val jsonAdapter: JsonAdapter<Exercise> = moshi.adapter(Exercise::class.java)
         val file = file(fileName)
+        if (!file.exists()) {
+            Log.e("ExerciseRepo", "File not found: $fileName")
+            return null
+        }
         val json = FileInputStream(file)
             .bufferedReader()
             .use {
@@ -331,65 +348,69 @@ class ExerciseRepository @Inject constructor(@ApplicationContext val context: Co
     }
 
     fun importExercise(importZipFileUri: Uri): ExerciseNameConflict? {
+        //First unzip everything in to a temporary folder
         val outputFolder = File(context.filesDir, "exercise_import")
         outputFolder.deleteRecursively()
         outputFolder.mkdirs()
+        var unzippedFiles = 0
         context.contentResolver.openInputStream(importZipFileUri)?.let { inputStream ->
             ZipInputStream(inputStream).use { zipInputStream ->
                 var entry = zipInputStream.nextEntry
                 while (entry != null) {
                     val file = File(outputFolder, entry.name)
-                    zipInputStream.copyTo(FileOutputStream(file))
+                    if (zipInputStream.copyTo(FileOutputStream(file))==0L){
+                        Log.e("Exercise Import","Failed to copy unzipped file")
+                    }
+                    unzippedFiles++
                     entry = zipInputStream.nextEntry
                 }
             }
         }
+        if (unzippedFiles==0){
+            Log.e("Exercise Import","No files were unzipped")
+        }
+
+        //Next we want to generate a unique name for this exercise
+        //rename the exercise json file and the folder
         val fileName = "exercise_"+System.currentTimeMillis().toString()
-        File(outputFolder,"exercise_preview-index.json")
+        val renameJsonSuccess = File(outputFolder,"exercise_preview-index.json")
             .renameTo(File(outputFolder, "${fileName}-index.json"))
         val renameFolderTo = File(File(outputFolder.parentFile,"exercises"),fileName)
-        outputFolder.renameTo(renameFolderTo)
+        renameFolderTo.parentFile?.mkdirs()
+        val renameFolderSuccess = outputFolder.renameTo(renameFolderTo)
 
-        val repo = ExerciseRepository(context)
-        val exercise = repo.getExercise(fileName)
-        val exerciseList = repo.getExerciseList()
+        if (!renameJsonSuccess || !renameFolderSuccess){
+            Log.e("Exercise Import","Rename error")
+        }
+
+        //Finally look for name conflicts
+        val exercise = getExercise(fileName)
+        if (exercise==null){
+            Log.e("Exercise Import","Exercise failed to load")
+        }
+        val exerciseList = getExerciseList()
         var conflictExercise:ExerciseListItem? = null
         exerciseList.forEach { exerciseListItem ->
-            if (exerciseListItem.name == exercise?.name) {
+            if (exerciseListItem.name.trimCounter() == exercise?.name?.trimCounter()) {
                 conflictExercise = exerciseListItem
             }
         }
         exercise?.let {
-            repo.saveExercise(it)
+            it.fileName = fileName
+            saveExercise(it)
             return ExerciseNameConflict(exercise, conflictExercise)
         }
         return null
     }
 
-    fun renameExercise(exercise: Exercise) {
-        //Look through all the exercises for ones with this name
-        //but with a number appended like (2)
-        //Count the number appended and generate a new name with one bigger number
-        val findNameNumber = Regex("${exercise.name}\\((\\d+)\\)$")
-        val exerciseList = getExerciseList()
-        var count = 0
-        var isDuplicate = false
-        exerciseList.forEach { exerciseListItem ->
-            if (exerciseListItem.name == exercise.name) isDuplicate = true
-            findNameNumber.find(exerciseListItem.name).let { matchResult ->
-                matchResult?.groups?.get(1)?.value?.toIntOrNull()?.let { counter ->
-                    if (counter > count) {
-                        count = counter
-                        isDuplicate = true
-                    }
-                }
-            }
-        }
-        if (isDuplicate){
-            count += 1
-            exercise.name = "${exercise.name}($count)"
 
-            for (i : Int in 0..exerciseList.size - 1){
+
+    fun renameExercise(exercise: Exercise) {
+        val exerciseList = getExerciseList()
+        val newName = findNextNameNumber(exercise.name, { exerciseList.size }, { exerciseList[it].name })
+        if (newName != exercise.name) {
+            exercise.name = newName
+            for (i in 0..<exerciseList.size){
                 if (exerciseList[i].fileName == exercise.fileName){
                     exerciseList[i].name = exercise.name
                 }
@@ -397,7 +418,6 @@ class ExerciseRepository @Inject constructor(@ApplicationContext val context: Co
             saveExerciseList(exerciseList)
             saveExercise(exercise)
         }
-
     }
 
     fun exportExercise(exercise: Exercise): File {
@@ -408,7 +428,14 @@ class ExerciseRepository @Inject constructor(@ApplicationContext val context: Co
         zipFolder(previewPath(),exportFile)
         return exportFile
     }
+}
 
+private fun String.trimCounter(): String {
+    val findNameNumber = Regex("\\((\\d+)\\)$")
+    findNameNumber.find(this)?.groups?.get(1)?.range?.start?.let {
+        return this.substring(0,it-1).trim()
+    }
+    return this.trim()
 }
 
 fun zipFolder(inputFolder: File, outputFile: File) {
@@ -428,13 +455,15 @@ fun zipFolder(inputFolder: File, outputFile: File) {
         }
     }
 
-    fun unzipFolder(zipFile: File, outputFolder: File) {
-        ZipInputStream(FileInputStream(zipFile)).use { zipInputStream ->
-            val entry = zipInputStream.nextEntry
-            while (entry != null) {
-                val file = File(outputFolder, entry.name)
-                zipInputStream.copyTo(FileOutputStream(file))
-            }
+}
+
+fun unzipFolder(zipFile: File, outputFolder: File) {
+    ZipInputStream(FileInputStream(zipFile)).use { zipInputStream ->
+        val entry = zipInputStream.nextEntry
+        while (entry != null) {
+            val file = File(outputFolder, entry.name)
+            zipInputStream.copyTo(FileOutputStream(file))
         }
     }
 }
+

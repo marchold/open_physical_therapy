@@ -104,9 +104,10 @@ class EditWorkoutActivity : ComponentActivity() {
         OpenPhysicalTherapyTheme {
             val exerciseListViewModel = hiltViewModel<ExerciseListViewModel>()
             exerciseListViewModel.reload()
+            val allExercises = exerciseListViewModel.getExercises()
 
-            val exercisesState = exerciseListViewModel.getExercises()
-            var workoutsExercises = workoutViewModel.getExercises()
+
+            val workoutsExercises = workoutViewModel.getExercises()
             val nameState by workoutViewModel.name.observeAsState()
 
             var isWorkoutNameInvalid by remember { mutableStateOf(false) }
@@ -120,10 +121,16 @@ class EditWorkoutActivity : ComponentActivity() {
 
                 }, sheetState = exportBottomSheetState) {
                     Column {
-                        TextButton(onClick = { exportToDocumentsFolder(workoutViewModel) }) {
+                        TextButton(onClick = {
+                            exportToDocumentsFolder(workoutViewModel)
+                            showExportBottomSheet = false
+                        }) {
                             Text("Save to documents folder")
                         }
-                        TextButton(onClick = { exportToShareIntent(workoutViewModel) }) {
+                        TextButton(onClick = {
+                            exportToShareIntent(workoutViewModel)
+                            showExportBottomSheet = false
+                        }) {
                             Text("Share to other apps")
                         }
                     }
@@ -224,7 +231,7 @@ class EditWorkoutActivity : ComponentActivity() {
                         )
                     }
                     LazyColumn {
-                        val filteredItems = exercisesState.filter { it.name.contains(text, ignoreCase = true) }
+                        val filteredItems = allExercises.filter { it.name.contains(text, ignoreCase = true) }
                         items(filteredItems.size){ index ->
                             Row(modifier = Modifier
                                 .height(55.dp)
@@ -392,8 +399,10 @@ class EditWorkoutActivity : ComponentActivity() {
             }
         }
     private fun exportToDocumentsFolder(workoutViewModel: EditWorkoutViewModel) {
-        workoutViewModel.name.value?.toValidFileName()?.let { createFileLauncher.launch(it) }
         exportFile = workoutViewModel.exportWorkout()
+        workoutViewModel.name.value?.toValidFileName()?.let {
+            createFileLauncher.launch(it)
+        }
     }
 
 

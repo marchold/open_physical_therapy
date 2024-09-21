@@ -39,7 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
-import com.catglo.openphysicaltherapy.Data.ExerciseNameConflict
+import com.catglo.openphysicaltherapy.Data.ExerciseRepository
 import com.catglo.openphysicaltherapy.Data.WorkoutNameConflict
 import com.catglo.openphysicaltherapy.EditWorkout.EditWorkoutActivity
 import com.catglo.openphysicaltherapy.R
@@ -70,7 +70,7 @@ fun WorkoutsListView(workoutsListViewModel: WorkoutListViewModel) {
             confirmButton = {
                 Button(
                     onClick = {
-                        workoutsListViewModel.deleteExercise(workoutsListViewModel.getWorkout(itemToDelete).name)
+                        workoutsListViewModel.deleteWorkout(workoutsListViewModel.getWorkout(itemToDelete).fileName)
                         openDialog.value = false
                     }) {
                     Text("Delete")
@@ -92,10 +92,74 @@ fun WorkoutsListView(workoutsListViewModel: WorkoutListViewModel) {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
         it?.let {
             workoutsListViewModel.importWorkout(it)?.let { workoutNameConflict ->
-                openConflictResolveAlert = true
+                if (workoutNameConflict.existingNameConflictWorkout != null
+                    && workoutNameConflict.exerciseConflicts.isNotEmpty())
+                {
+                    openConflictResolveAlert = true
+                }
                 conflict = workoutNameConflict
             }
         }
+    }
+
+    if (openConflictResolveAlert){
+
+        AlertDialog(
+            onDismissRequest =
+            {
+                //TODO: We should probobly delete the newly imported workout and its exercises in this case
+                openConflictResolveAlert=false
+            },
+            title = {
+                if (conflict?.existingNameConflictWorkout != null && (conflict?.exerciseConflicts?.size ?: 0) > 0){
+                    //Conflict in both workout name and some exercise names
+                    Text("There are workouts and exercises with the same names as the import")
+                } else if (conflict?.existingNameConflictWorkout != null) {
+                    //Workout has a name conflict but none of the exercises do
+                    Text("There is a workout with this name already")
+                } else {
+                    //Workout name is unique but some of the exercises are not
+                    Text("There are ${ (conflict?.exerciseConflicts?.size ?: 0) } exercises with the same names already")
+                }
+            },
+            text = {Text("Keep both or overwrite?")},
+            confirmButton = {
+                Button(
+                    onClick = {
+                        conflict?.existingNameConflictWorkout?.fileName?.let {
+                            workoutsListViewModel.deleteWorkout(it)
+                        }
+                        conflict?.exerciseConflicts?.forEach { exerciseNameConflict ->
+                            exerciseNameConflict.existingNameConflictExercise?.fileName?.let { exerciseFileName ->
+                                ExerciseRepository(context).deleteExercise(
+                                    exerciseFileName
+                                )
+                            }
+                        }
+                        openConflictResolveAlert = false
+                    })
+                {
+                    Text("Overwrite")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        if (conflict?.existingNameConflictWorkout != null) {
+                            conflict?.newWorkout?.let { workoutsListViewModel.renameWorkout(it) }
+                        }
+                        conflict?.exerciseConflicts?.forEach { exerciseNameConflict ->
+                            if (exerciseNameConflict.existingNameConflictExercise != null) {
+                                val exerciseRepo = ExerciseRepository(context)
+                                exerciseRepo.renameExercise(exerciseNameConflict.newExercise)
+                            }
+                        }
+                        openConflictResolveAlert = false
+                    })
+                {
+                    Text("Keep Both")
+                }
+            })
     }
 
     Scaffold(
@@ -108,7 +172,7 @@ fun WorkoutsListView(workoutsListViewModel: WorkoutListViewModel) {
                             Intent(context, EditWorkoutActivity::class.java),null)
                     }),
                     FloatingButtonItem(ImageVector.vectorResource(R.drawable.icon_import), "Import Workout File", onClick = {
-
+                        launcher.launch(arrayOf("*/*"))
                     })
                 ),
                 icon = Icons.Filled.Add,

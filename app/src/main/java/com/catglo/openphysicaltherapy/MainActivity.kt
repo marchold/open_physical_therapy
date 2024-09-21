@@ -171,6 +171,7 @@ class MainActivity : ComponentActivity() {
 
 }
 
+//TODO: In edit workout screen plus button should move up with keyboard
 
 //TODO: Keep track if any changes have been made and don't show the confirm discard alert if nothing changed
 

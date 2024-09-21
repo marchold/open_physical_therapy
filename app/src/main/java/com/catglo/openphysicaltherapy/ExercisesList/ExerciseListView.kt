@@ -1,6 +1,7 @@
 package com.catglo.openphysicaltherapy.ExercisesList
 
 import android.content.Intent
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -45,19 +46,23 @@ fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
         it?.let {
             exerciseListViewModel.importExercise(it)?.let { exerciseConflict ->
-                if (exerciseConflict.oldExercise != null) openConflictResolveAlert = true
+                if (exerciseConflict.existingNameConflictExercise != null) openConflictResolveAlert = true
                 conflict = exerciseConflict
             }
         }
     }
     if (openConflictResolveAlert){
         AlertDialog(
-            onDismissRequest = { openConflictResolveAlert = false },
-            title = { Text("You already have an exercise named ${conflict?.oldExercise?.name}")},
+            onDismissRequest =
+            {
+                //TODO: Delete the imported exercise in this case
+                openConflictResolveAlert = false
+            },
+            title = { Text("You already have an exercise named ${conflict?.existingNameConflictExercise?.name}")},
             text = { Text(text = "Would you like to replace it or keep them both?")},
             confirmButton = {
                 Button(onClick = {
-                    conflict?.oldExercise?.fileName?.let {
+                    conflict?.existingNameConflictExercise?.fileName?.let {
                         exerciseListViewModel.deleteExercise(it)
                     }
                     openConflictResolveAlert = false
@@ -77,8 +82,9 @@ fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
             })
     }
 
-
-    val exercisesState = remember { exerciseListViewModel.getExercises() }
+    val exercisesData = exerciseListViewModel.getExercises()
+    exercisesData.forEach { Log.i("Exercise","Exercise ${it.name} , ${it.fileName}") }
+    val exercisesState = remember { exercisesData }
     var itemToDelete by remember { mutableIntStateOf(0) }
     val openDeleteConfirmAlert = remember { mutableStateOf(false)  }
     if (openDeleteConfirmAlert.value) {
@@ -168,21 +174,3 @@ fun ExercisesListView(exerciseListViewModel: ExerciseListViewModel) {
     }
 }
 
-fun importExercise() {
-
-
-//    private var exportFile: File? = null
-//    private val createFileLauncher =
-//        registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { exportFileUri ->
-//            exportFileUri?.let { outputUri ->
-//                contentResolver.openOutputStream(outputUri)?.let { outputStream ->
-//                    exportFile?.inputStream()?.copyTo(outputStream)
-//                }
-//            }
-//        }
-//
-//    private fun exportToDocumentsFolder(exerciseViewModel: EditExerciseViewModel) {
-//        createFileLauncher.launch(exerciseViewModel.prettyFileName())
-//        exportFile = exerciseViewModel.exportExercise()
-//    }
-}

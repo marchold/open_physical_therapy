@@ -78,9 +78,9 @@ data class Exercise(var name: String,
 
 
 
-data class ExerciseNameConflict(val newExercise: Exercise, val oldExercise: ExerciseListItem?)
+data class ExerciseNameConflict(val newExercise: Exercise, val existingNameConflictExercise: ExerciseListItem?)
 
-data class ExerciseListItem(var name: String, val fileName: String)
+data class ExerciseListItem(var name: String, var fileName: String)
 
 data class Workout(var name: String,
                    var exercises: List<ExerciseListItem>,
@@ -90,5 +90,5 @@ data class WorkoutListItem(var name: String, val fileName: String)
 
 
 data class WorkoutNameConflict(val newWorkout: Workout,
-                               val oldWorkout: WorkoutListItem?,
+                               val existingNameConflictWorkout: WorkoutListItem?,
                                val exerciseConflicts: List<ExerciseNameConflict>)
