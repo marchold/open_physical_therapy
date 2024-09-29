@@ -1,14 +1,11 @@
 package com.catglo.openphysicaltherapy.EditExercise
 
 
-import android.content.ContentResolver
-import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -60,16 +57,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
-import androidx.core.net.toFile
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.catglo.openphysicaltherapy.R
+import com.catglo.openphysicaltherapy.Widgets.NumberPickerTextField
 import com.catglo.openphysicaltherapy.Widgets.actionBarColors
 import com.catglo.openphysicaltherapy.WorkoutPlayer.ExercisePreviewActivity
 import com.catglo.openphysicaltherapy.ui.theme.OpenPhysicalTherapyTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileOutputStream
 
 
 @AndroidEntryPoint
@@ -77,32 +73,40 @@ class EditExerciseActivity() : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val exerciseToEdit = intent.getStringExtra("EditExercise")
+        //The exercise to edit is injected from intent.getStringExtra("EditExercise")
         enableEdgeToEdge()
         setContent {
-            EditExerciseView(exerciseToEdit)
+            EditExerciseView()
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun EditExerciseView(exerciseToEdit: String?) {
-        val exerciseViewModel = hiltViewModel<EditExerciseViewModel>()
+    fun EditExerciseView() {
+        val editExerciseViewModel = hiltViewModel<EditExerciseViewModel>()
 
-        val exerciseSteps = exerciseViewModel.getExerciseSteps()
+        val exerciseSteps = editExerciseViewModel.getExerciseSteps()
         val pagerState = rememberPagerState(pageCount = {exerciseSteps.size})
-        val nameState by exerciseViewModel.name.observeAsState()
+        val nameState by editExerciseViewModel.name.observeAsState()
 
         val coroutineScope = rememberCoroutineScope()
         var isExerciseNameInvalid by remember { mutableStateOf(false) }
         var isExerciseDuplicateError by remember { mutableStateOf(false) }
         var isSaveButtonEnabled by remember { mutableStateOf(
-            (exerciseViewModel.name.value?.length ?: 0) > 0
+            (editExerciseViewModel.name.value?.length ?: 0) > 0
         ) }
-
         
         OpenPhysicalTherapyTheme {
             val showConfirmDiscardAlert = remember { mutableStateOf( false ) }
+
+            BackHandler {
+                if (editExerciseViewModel.hasBeenEdited){
+                    showConfirmDiscardAlert.value = true
+                } else {
+                    finish()
+                }
+            }
+
             if (showConfirmDiscardAlert.value){
                 AlertDialog(
                     onDismissRequest = { showConfirmDiscardAlert.value = false },
@@ -124,7 +128,7 @@ class EditExerciseActivity() : ComponentActivity() {
                     confirmButton = { Button(onClick =
                     {
                         val currentPage = stepIndexToDelete
-                        exerciseViewModel.removeStep(currentPage)
+                        editExerciseViewModel.removeStep(currentPage)
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(currentPage-1)
                         }
@@ -133,7 +137,6 @@ class EditExerciseActivity() : ComponentActivity() {
                 )
             }
 
-            val scope = rememberCoroutineScope()
             val exportBottomSheetState = rememberModalBottomSheetState()
             var showExportBottomSheet by remember { mutableStateOf(false) }
             if (showExportBottomSheet) {
@@ -141,10 +144,10 @@ class EditExerciseActivity() : ComponentActivity() {
 
                 }, sheetState = exportBottomSheetState) {
                     Column {
-                        TextButton(onClick = { exportToDocumentsFolder(exerciseViewModel) }) {
+                        TextButton(onClick = { exportToDocumentsFolder(editExerciseViewModel) }) {
                             Text("Save to documents folder")
                         }
-                        TextButton(onClick = { exportToShareIntent(exerciseViewModel) }) {
+                        TextButton(onClick = { exportToShareIntent(editExerciseViewModel) }) {
                             Text("Share to other apps")
                         }
                     }
@@ -162,7 +165,7 @@ class EditExerciseActivity() : ComponentActivity() {
                                     contentDescription = "Export")
                             }
                             IconButton(onClick = {
-                                exerciseViewModel.saveForPreview()
+                                editExerciseViewModel.saveForPreview()
                                 startActivity(
                                     Intent(this@EditExerciseActivity,
                                     ExercisePreviewActivity::class.java).apply {
@@ -174,7 +177,7 @@ class EditExerciseActivity() : ComponentActivity() {
                                     contentDescription = "Preview Changes Button")
                             }
                             IconButton(onClick = {
-                                if (exerciseViewModel.hasBeenEdited){
+                                if (editExerciseViewModel.hasBeenEdited){
                                     showConfirmDiscardAlert.value = true
                                 } else {
                                     finish()
@@ -183,7 +186,7 @@ class EditExerciseActivity() : ComponentActivity() {
                                 Icon(Icons.Filled.Close, contentDescription = "Discard Changes Button")
                             }
                             IconButton(onClick = {
-                                exerciseViewModel.save()
+                                editExerciseViewModel.save()
                                 finish()
                             },
                                 enabled = isSaveButtonEnabled)
@@ -208,13 +211,13 @@ class EditExerciseActivity() : ComponentActivity() {
                                 }else {
                                     isExerciseNameInvalid = false
                                 }
-                                if (exerciseViewModel.isExerciseNameUnique(it)){
+                                if (editExerciseViewModel.isExerciseNameUnique(it)){
                                     isExerciseDuplicateError = false
                                 }else{
                                     isExerciseDuplicateError = true
                                     isSaveButtonEnabled = false
                                 }
-                                exerciseViewModel.updateName(it)
+                                editExerciseViewModel.updateName(it)
                             },
                             label = {
                                 Text(text = stringResource(R.string.name_exercise))
@@ -227,6 +230,18 @@ class EditExerciseActivity() : ComponentActivity() {
                         if (isExerciseDuplicateError){
                             Text(text = "Exercise name already exists", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                         }
+
+                       NumberPickerTextField(
+                            intLiveData = editExerciseViewModel.numberOfReps(),
+                            icon = ImageVector.vectorResource(R.drawable.icon_repeat),
+                            minimumValue = 1,
+                            maximumValue = 20,
+                            "Number of reps"
+                        ) {
+                            editExerciseViewModel.updateNumberOfReps(it)
+                        }
+
+
                         Spacer(modifier = Modifier.height(10.dp))
                         Box {
                             Text(
@@ -250,7 +265,7 @@ class EditExerciseActivity() : ComponentActivity() {
                         HorizontalPager(state = pagerState ) { stepIndex ->
                             Column {
                                 ExerciseStepView(
-                                    editExerciseViewModel = exerciseViewModel,
+                                    editExerciseViewModel = editExerciseViewModel,
                                     stepIndex = stepIndex
                                 )
                             }
@@ -281,7 +296,7 @@ class EditExerciseActivity() : ComponentActivity() {
                                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next Step")
                             }
                             IconButton(onClick = {
-                                exerciseViewModel.addStep()
+                                editExerciseViewModel.addStep()
                                 Log.i("pager","pager state page count = ${pagerState.pageCount}")
                                 coroutineScope.launch {
                                     pagerState.animateScrollToPage(pagerState.pageCount-1)

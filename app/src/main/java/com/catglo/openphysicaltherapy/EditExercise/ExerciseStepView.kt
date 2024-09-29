@@ -20,17 +20,7 @@ fun ExerciseStepView(editExerciseViewModel:EditExerciseViewModel, stepIndex: Int
     val slides = editExerciseViewModel.getSlides(stepIndex)
 
     LazyColumn {
-        item {
-            NumberPickerTextField(
-                intLiveData = editExerciseViewModel.numberOfReps(stepIndex),
-                icon = ImageVector.vectorResource(R.drawable.icon_repeat),
-                minimumValue = 1,
-                maximumValue = 20,
-                "Number of reps"
-            ) {
-                editExerciseViewModel.updateNumberOfReps(stepIndex, it)
-            }
-        }
+
         items(slides.size) { slideIndex ->
             EditableInstructionalSlideView(
                 stepIndex = stepIndex,

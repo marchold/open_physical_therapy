@@ -43,7 +43,7 @@ class ExerciseListViewModel @Inject constructor(private val repo: ExerciseReposi
 
     fun renameExercise(exercise: Exercise) {
         repo.renameExercise(exercise)
-        listItems.forEachIndexed { index, exerciseListItem ->
+        listItems.forEachIndexed { _, exerciseListItem ->
             if (exerciseListItem.fileName == exercise.fileName){
                 exerciseListItem.name = exercise.name
             }

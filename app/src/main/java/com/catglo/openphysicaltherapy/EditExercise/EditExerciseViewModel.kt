@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -45,7 +46,7 @@ open class EditExerciseViewModel @Inject constructor(private val repo: ExerciseR
         return _exerciseSteps
     }
     fun addStep(){
-        _exerciseSteps.add(ExerciseStep(1))
+        _exerciseSteps.add(ExerciseStep())
         exercise.steps = _exerciseSteps
         hasBeenEdited = true
     }
@@ -107,24 +108,47 @@ open class EditExerciseViewModel @Inject constructor(private val repo: ExerciseR
         return exercise.prettyFileName()
     }
 
-    fun getSlides(exerciseStepIndex:Int):List<InstructionalSlide>{
-        return _exerciseSteps[exerciseStepIndex].slides
+    /*
+     private var _slides = exerciseStep.slides.toMutableStateList()
+    fun getSlides():List<InstructionalSlide>{
+        return _slides
+    }
+    fun addSlide(){
+        _slides.add(InstructionalSlide())
+        exerciseStep.slides = _slides
+    }
+     */
+    private val slidesStateFlow = HashMap<Int,SnapshotStateList<InstructionalSlide>>()
+    fun getSlides(exerciseStepIndex:Int):SnapshotStateList<InstructionalSlide>{
+        if (slidesStateFlow.containsKey(exerciseStepIndex)){
+            return slidesStateFlow[exerciseStepIndex]!!
+        } else {
+            slidesStateFlow[exerciseStepIndex] = exercise.steps[exerciseStepIndex].slides.toMutableStateList()
+            return slidesStateFlow[exerciseStepIndex]!!
+        }
     }
     fun addSlide(exerciseStepIndex:Int){
-        exercise.steps[exerciseStepIndex].slides.add(InstructionalSlide())
+        val newSlide = InstructionalSlide()
+        exercise.steps[exerciseStepIndex].slides.add(newSlide)
+        if (slidesStateFlow.containsKey(exerciseStepIndex)){
+            slidesStateFlow[exerciseStepIndex]?.add(newSlide)
+        }
         hasBeenEdited = true
     }
     fun removeSlide(exerciseStepIndex:Int,slideIndex: Int) {
         exercise.steps[exerciseStepIndex].slides.removeAt(slideIndex)
+        if (slidesStateFlow.containsKey(exerciseStepIndex)){
+            slidesStateFlow[exerciseStepIndex]?.removeAt(slideIndex)
+        }
         hasBeenEdited = true
     }
-    fun updateNumberOfReps(exerciseStepIndex:Int,newNumberOfReps:Int){
-        exercise.steps[exerciseStepIndex].numberOfReps = newNumberOfReps
+    fun updateNumberOfReps(newNumberOfReps:Int){
+        exercise.numberOfReps = newNumberOfReps
         hasBeenEdited = true
     }
 
-    fun numberOfReps(exerciseStepIndex: Int):MutableIntState{
-        return mutableIntStateOf(exercise.steps[exerciseStepIndex].numberOfReps)
+    fun numberOfReps():MutableIntState{
+        return mutableIntStateOf(exercise.numberOfReps)
     }
 
     fun duration(slideIndex:Int,stepIndex:Int):MutableIntState{

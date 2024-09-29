@@ -101,13 +101,24 @@ class PlayExerciseViewModel @Inject constructor(private val repo: ExerciseReposi
     }
 
     private var slideSwitchCountdown = getSlide().duration
+    private var repsCountdownValue = exercise.numberOfReps
 
     fun onCountdownTick() {
         _countdownTimerValue.value = _countdownTimerValue.value?.minus(1)
         slideSwitchCountdown--
 
         if ((_countdownTimerValue.value ?: 1) <= 0 && slideSwitchCountdown <= 0){
-            isDoneWithExercise = true
+            repsCountdownValue--
+            if (repsCountdownValue == 0) {
+                isDoneWithExercise = true
+            } else {
+                currentStep.intValue = 0
+                currentSlide.intValue = 0
+                slideSwitchCountdown = getSlide().duration
+                instructionText = getSlide().text
+                slideSwitchCountdown = getSlide().duration
+                textToSpeech(instructionText)
+            }
         }
         else
         if ((_countdownTimerValue.value ?: 1) <= 0){

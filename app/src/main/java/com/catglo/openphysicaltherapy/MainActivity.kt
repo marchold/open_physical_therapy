@@ -171,21 +171,15 @@ class MainActivity : ComponentActivity() {
 
 }
 
-//TODO: In edit workout screen plus button should move up with keyboard
+//TODO: Need to implement reps in the player
 
-//TODO: Keep track if any changes have been made and don't show the confirm discard alert if nothing changed
+//TODO: In edit workout screen plus button should move up with keyboard
 
 //TODO: Add a list of materials like a band or whatever else you need to the workout and each
 //      exercise screen
 
-//TODO: Need to deal with workouts as zip files that can be exported and imported
-
-//TODO: When exporting a workout include all its exercises
-
 //TODO: Add some way to schedule workouts, (need to figure out the UX for this)
 //              Either integrate with google calendar, or just have a schedule option for each workout
-
-//TODO: Catch on back pressed for edit exercise and workout and show discard changes alert
 
 //TODO: Add some simple help/tutorial system
 

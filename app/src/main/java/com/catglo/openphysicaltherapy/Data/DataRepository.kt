@@ -141,7 +141,7 @@ class WorkoutRepository @Inject constructor(@ApplicationContext val context: Con
             }
         }
 
-        val oldJsonFileName = outputFolder.listFiles(FilenameFilter { dir, name -> name.endsWith(".json") })?.first()
+        val oldJsonFileName = outputFolder.listFiles(FilenameFilter { _, name -> name.endsWith(".json") })?.first()
         val newFileName = "workout_"+System.currentTimeMillis().toString()
         val newJsonFileName =  file(newFileName)
         oldJsonFileName?.renameTo(newJsonFileName)

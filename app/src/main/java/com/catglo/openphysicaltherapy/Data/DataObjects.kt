@@ -44,12 +44,12 @@ data class InstructionalSlide(var text: String = "",
     }
 }
 
-data class ExerciseStep(var numberOfReps: Int = 1,
-                        var slides: MutableList<InstructionalSlide> = mutableListOf(
+data class ExerciseStep(var slides: MutableList<InstructionalSlide> = mutableListOf(
                             InstructionalSlide()
                         ))
 
 data class Exercise(var name: String,
+                    var numberOfReps: Int = 1,
                     var steps: MutableList<ExerciseStep> = mutableListOf(ExerciseStep()),
                     var fileName: String = "exercise_"+System.currentTimeMillis().toString())
 {
@@ -61,14 +61,6 @@ data class Exercise(var name: String,
             }
         }
         return totalDuration
-    }
-
-    fun totalNumberOfReps(): Any {
-        var totalNumberOfReps = 0
-        steps.forEach { step ->
-            totalNumberOfReps += step.numberOfReps
-        }
-        return totalNumberOfReps
     }
 
     fun prettyFileName(): String {

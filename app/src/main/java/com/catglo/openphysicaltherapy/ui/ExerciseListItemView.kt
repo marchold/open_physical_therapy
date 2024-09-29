@@ -35,13 +35,13 @@ fun ExerciseListItemView(exerciseListItem: ExerciseListItem, onClick: (() -> Uni
     var totalDuration by remember { mutableStateOf("") }
     var numberOfRepsText by remember { mutableStateOf("") }
     val context = LocalContext.current
-    var exercise : Exercise? = null
+    var exercise : Exercise?
     LaunchedEffect(key1 = Unit) {
         exercise = ExerciseRepository(context).getExercise(exerciseListItem.fileName)
         exercise?.totalDuration()?.secondsToInterval()?.let { timeIntervalString ->
             totalDuration = timeIntervalString
         }
-        exercise?.totalNumberOfReps()?.let { numberOfReps ->
+        exercise?.numberOfReps?.let { numberOfReps ->
             numberOfRepsText = "$numberOfReps reps"
         }
     }
