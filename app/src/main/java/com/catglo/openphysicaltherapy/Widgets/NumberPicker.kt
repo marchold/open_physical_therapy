@@ -56,6 +56,7 @@ fun NumberPicker(
             numberPicker.value = value
             numberPicker.setOnValueChangedListener { _, _, i2 ->
                 onNumberSelected(i2)
+
             }
             numberPicker
         }
@@ -150,8 +151,11 @@ fun NumberPickerTextField(
             }
             extraControls?.invoke()
             NumberPicker(
-                onNumberSelected = onNumberSelected,
-                value = intLiveData.value!!,
+                onNumberSelected = { newNumber ->
+                    intLiveData.value = newNumber
+                    onNumberSelected(newNumber)
+                },
+                value = intLiveData.value,
                 minimumValue = minimumValue,
                 maximumValue = maximumValue,
                 formatter = formatter

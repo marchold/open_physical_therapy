@@ -23,6 +23,8 @@ class EditWorkoutViewModel @Inject constructor(private val repo: WorkoutReposito
     var originalName: String? = null
         private set
 
+    var hasBeenEdited = false
+
     private var _exercises = workout.exercises.toMutableStateList()
     fun getExercises():SnapshotStateList<ExerciseListItem>{
         return _exercises
@@ -30,17 +32,20 @@ class EditWorkoutViewModel @Inject constructor(private val repo: WorkoutReposito
     fun addExercise(item: ExerciseListItem){
         _exercises.add(item)
         workout.exercises = _exercises
+        hasBeenEdited = true
     }
     fun moveExercise(from:Int, to:Int){
         val fromItem = _exercises[from]
         _exercises.removeAt(from)
         _exercises.add(to, fromItem)
         workout.exercises = _exercises
+        hasBeenEdited = true
     }
 
     fun removeExercise(index: Int) {
         _exercises.removeAt(index)
         workout.exercises = _exercises
+        hasBeenEdited = true
     }
 
     private val _name = MutableLiveData<String>("")
@@ -48,6 +53,7 @@ class EditWorkoutViewModel @Inject constructor(private val repo: WorkoutReposito
     fun updateName(newName:String){
         _name.value = newName
         workout.name = newName
+        hasBeenEdited = true
     }
 
     fun save(){

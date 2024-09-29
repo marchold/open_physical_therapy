@@ -174,7 +174,11 @@ class EditExerciseActivity() : ComponentActivity() {
                                     contentDescription = "Preview Changes Button")
                             }
                             IconButton(onClick = {
-                                showConfirmDiscardAlert.value = true
+                                if (exerciseViewModel.hasBeenEdited){
+                                    showConfirmDiscardAlert.value = true
+                                } else {
+                                    finish()
+                                }
                             }) {
                                 Icon(Icons.Filled.Close, contentDescription = "Discard Changes Button")
                             }
@@ -245,7 +249,10 @@ class EditExerciseActivity() : ComponentActivity() {
                         HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(0.dp,0.dp,0.dp,8.dp))
                         HorizontalPager(state = pagerState ) { stepIndex ->
                             Column {
-                                ExerciseStepView(exerciseSteps[stepIndex],stepIndex, exerciseViewModel.fileName() )
+                                ExerciseStepView(
+                                    editExerciseViewModel = exerciseViewModel,
+                                    stepIndex = stepIndex
+                                )
                             }
                         }
 

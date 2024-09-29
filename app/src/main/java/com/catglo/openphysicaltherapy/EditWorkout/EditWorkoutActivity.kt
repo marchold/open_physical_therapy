@@ -275,7 +275,11 @@ class EditWorkoutActivity : ComponentActivity() {
                                 Icon(ImageVector.vectorResource(id = R.drawable.icon_preview),"Preview Icon")
                             }
                             IconButton(onClick = {
-                                showConfirmDiscardAlert.value = true
+                                if (workoutViewModel.hasBeenEdited) {
+                                    showConfirmDiscardAlert.value = true
+                                } else {
+                                    finish()
+                                }
                             }) {
                                 Icon(
                                     Icons.Filled.Close,

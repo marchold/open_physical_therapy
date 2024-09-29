@@ -1,11 +1,7 @@
 package com.catglo.openphysicaltherapy.EditExercise
 
-import android.graphics.BitmapFactory
-import android.net.Uri
 import android.util.Log
-import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,22 +23,14 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -72,23 +60,16 @@ import com.catglo.openphysicaltherapy.viewModelFactory
 @Composable
 fun EditableInstructionalSlideView(
     slideIndex: Int,
-    slide: InstructionalSlide,
     stepIndex: Int,
-    stepViewModel: ExerciseStepViewModel,
-    exerciseName: String
+    editExerciseViewModel: EditExerciseViewModel,
 ) {
-    val application = LocalContext.current.applicationContext as OpenPhysicalTherapyApplication
-    val slideViewModel = viewModel<InstructionalSlideViewModel>(
-        key = "$stepIndex - $slideIndex",
-        factory = viewModelFactory {
-            InstructionalSlideViewModel(exerciseName,slide,application)
-        })
-    val slideImage = slideViewModel.getImageFile()
+
+    val slideImage = editExerciseViewModel.getImageFile(slideIndex,stepIndex)
 
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
-        key(slideViewModel.mediaUriKey.value) {
+        key(editExerciseViewModel.mediaUriKey.value) {
             Box {
                 if ((slideImage?.exists()) != true) {
                     Image(
@@ -108,7 +89,7 @@ fun EditableInstructionalSlideView(
                     contentDescription = null,
                 )
 
-                slideViewModel.videoFileUri()?.path?.let { path ->
+                editExerciseViewModel.videoFileUri(slideIndex, stepIndex)?.path?.let { path ->
                     val exoPlayer = ExoPlayer.Builder(LocalContext.current).build()
                     AndroidView(
                         modifier = Modifier
@@ -125,7 +106,7 @@ fun EditableInstructionalSlideView(
                             }
                         }
                     )
-                    val mediaItem = MediaItem.fromUri(slideViewModel.videoFileUri()!!)
+                    val mediaItem = MediaItem.fromUri(editExerciseViewModel.videoFileUri(slideIndex, stepIndex)!!)
                     // Set the media item to be played.
                     exoPlayer.setMediaItem(mediaItem)
                     // Prepare the player.
@@ -144,7 +125,7 @@ fun EditableInstructionalSlideView(
                 verticalArrangement = Arrangement.Center
             ) {
                 IconButton(onClick = {
-                    stepViewModel.removeSlide(slideIndex)
+                    editExerciseViewModel.removeSlide(stepIndex,slideIndex)
                 }) {
                     Icon(Icons.Outlined.Close, contentDescription = "Remove Slide Icon")
                 }
@@ -152,7 +133,7 @@ fun EditableInstructionalSlideView(
         }
 
         NumberPickerTextField(
-            intLiveData = slideViewModel.duration,
+            intLiveData = editExerciseViewModel.duration(slideIndex,stepIndex),
             minimumValue = 3,
             maximumValue = 500,
             title = "Duration in seconds",
@@ -164,7 +145,7 @@ fun EditableInstructionalSlideView(
                     ) {
                         Row(
                             modifier = Modifier.alpha(
-                                if (slideViewModel.showCountdown.value) {
+                                if (editExerciseViewModel.showCountdown(slideIndex,stepIndex).value) {
                                     1f
                                 } else {
                                     0.5f
@@ -203,9 +184,9 @@ fun EditableInstructionalSlideView(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(text = "Show countdown")
                         Switch(
-                            checked = slideViewModel.showCountdown.value,
+                            checked = editExerciseViewModel.showCountdown(slideIndex,stepIndex).value,
                             onCheckedChange = {
-                                slideViewModel.updateShowCountdown(it)
+                                editExerciseViewModel.updateShowCountdown(slideIndex,stepIndex,it)
                             },
                             modifier = Modifier.padding(start = 10.dp)
                         )
@@ -214,16 +195,16 @@ fun EditableInstructionalSlideView(
             },
             formatter = { it.secondsToInterval() }
         ) {
-            slideViewModel.updateDuration(it)
+            editExerciseViewModel.updateDuration(slideIndex,stepIndex,it)
         }
 
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter),
-            value = slideViewModel.text,
+            value = editExerciseViewModel.text(slideIndex,stepIndex).value,
             onValueChange = { newValue ->
-                slideViewModel.updateText(newValue)
+                editExerciseViewModel.updateText(slideIndex,stepIndex,newValue)
             },
             label = {
                 Text(text = "Instructional text")
@@ -234,15 +215,15 @@ fun EditableInstructionalSlideView(
         ImagePickCaptureButton(
             onImageFilePicked = { uri ->
                 Log.i("file", "got image $uri")
-                slideViewModel.updateImage(uri)
-                slideViewModel.mediaUriKey.value = uri.path ?: ""
+                editExerciseViewModel.updateImage(slideIndex, stepIndex, uri)
+                editExerciseViewModel.mediaUriKey.value = uri.path ?: ""
             },
             onVideoFilePicked = { uri ->
                 Log.i("file", "got video $uri")
-                slideViewModel.updateVideo(uri)
-                slideViewModel.mediaUriKey.value = uri.path ?: ""
+                editExerciseViewModel.updateVideo(slideIndex, stepIndex, uri)
+                editExerciseViewModel.mediaUriKey.value = uri.path ?: ""
             },
-            imageVector = if (slideViewModel.hasVisualMedia()) {
+            imageVector = if (editExerciseViewModel.hasVisualMedia(slideIndex, stepIndex)) {
                 ImageVector.vectorResource(id = R.drawable.icon_image_edit)
             } else {
                 ImageVector.vectorResource(id = R.drawable.icon_add_image)
