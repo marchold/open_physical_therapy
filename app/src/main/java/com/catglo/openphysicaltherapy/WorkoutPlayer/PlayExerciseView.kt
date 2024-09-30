@@ -54,7 +54,7 @@ fun PlayExerciseView(exerciseToPlay: String,
     }
 
     LaunchedEffect(key1 = viewModel.countdownTimerValue.value) {
-        while ((viewModel.countdownTimerValue.value ?: 0) > 0) {
+        while (viewModel.hasMoreSlides()) {
             delay(1000L)
             viewModel.onCountdownTick()
         }

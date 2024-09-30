@@ -75,6 +75,7 @@ class PlayExerciseViewModel @Inject constructor(private val repo: ExerciseReposi
             _countdownTimerValue.value = getSlideDuration()
             slideSwitchCountdown = getSlide().duration
             instructionText = getSlide().text
+            repsCountdownValue = exercise.numberOfReps
         }
     }
 
@@ -116,8 +117,9 @@ class PlayExerciseViewModel @Inject constructor(private val repo: ExerciseReposi
                 currentSlide.intValue = 0
                 slideSwitchCountdown = getSlide().duration
                 instructionText = getSlide().text
-                slideSwitchCountdown = getSlide().duration
+                _countdownTimerValue.value = getSlideDuration()
                 textToSpeech(instructionText)
+
             }
         }
         else
@@ -141,5 +143,9 @@ class PlayExerciseViewModel @Inject constructor(private val repo: ExerciseReposi
             textToSpeech(instructionText)
         }
 
+    }
+
+    fun hasMoreSlides(): Boolean {
+        return repsCountdownValue>0 || slideSwitchCountdown>0
     }
 }

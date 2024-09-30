@@ -24,7 +24,6 @@ class ExercisePreviewActivity : ComponentActivity() {
     private var textToSpeech : TextToSpeech? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-       // textToSpeech = TextToSpeech(this, this)
 
         val exerciseToPlay = intent.getStringExtra("Exercise")
         if (exerciseToPlay == null){
@@ -53,17 +52,6 @@ class ExercisePreviewActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-//    override fun onInit(status: Int) {
-//        if (status == TextToSpeech.SUCCESS) {
-//            val result = textToSpeech?.setLanguage(Locale.US)
-//
-//            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-//                Log.e("TTS","The Language not supported!")
-//            } else {
-//                //btnSpeak!!.isEnabled = true
-//            }
-//        }
-//    }
 }
 
 
