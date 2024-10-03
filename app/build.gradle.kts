@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.session)
     implementation(libs.android.image.cropper)
+    implementation(libs.androidx.graphics.shapes)
 
 
 

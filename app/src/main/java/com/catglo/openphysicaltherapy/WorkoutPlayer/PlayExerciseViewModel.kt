@@ -23,6 +23,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlayExerciseViewModel @Inject constructor(private val repo: ExerciseRepository, @ApplicationContext val context: Context) : ViewModel() {
+    val totalNumberOfReps: Int
+        get() = exercise.numberOfReps
+
     private var exercise = Exercise("")
 
     private  var  textToSpeech: TextToSpeech? = null
@@ -102,7 +105,8 @@ class PlayExerciseViewModel @Inject constructor(private val repo: ExerciseReposi
     }
 
     private var slideSwitchCountdown = getSlide().duration
-    private var repsCountdownValue = exercise.numberOfReps
+    var repsCountdownValue by mutableIntStateOf(exercise.numberOfReps)
+        private set
 
     fun onCountdownTick() {
         _countdownTimerValue.value = _countdownTimerValue.value?.minus(1)

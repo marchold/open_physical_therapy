@@ -171,7 +171,7 @@ class MainActivity : ComponentActivity() {
 
 }
 
-//TODO: Need to implement reps in the player
+//TODO: Make the seconds counter look like a stopwatch not just a circle
 
 //TODO: In edit workout screen plus button should move up with keyboard
 

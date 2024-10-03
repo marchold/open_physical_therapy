@@ -43,6 +43,7 @@ composeCropper = "Tag"
 androidImageCropper = "4.6.0"
 imagecropview = "3.0.1"
 easycrop = "0.1.1"
+graphicsShapes = "1.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -93,6 +94,7 @@ androidx-media3-session = { group = "androidx.media3", name = "media3-session", 
 android-image-cropper = { group = "com.vanniktech", name = "android-image-cropper", version.ref = "androidImageCropper" }
 imagecropview = { group = "io.github.rroohit", name = "ImageCropView", version.ref = "imagecropview" }
 easycrop = { group = "io.github.mr0xf00", name = "easycrop", version.ref = "easycrop" }
+androidx-graphics-shapes = { group = "androidx.graphics", name = "graphics-shapes", version.ref = "graphicsShapes" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
