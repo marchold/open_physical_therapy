@@ -171,9 +171,16 @@ class MainActivity : ComponentActivity() {
 
 }
 
-//TODO: Make the seconds counter look like a stopwatch not just a circle
+//TODO: Need to add the option to add a continue screen, for like the exercisae intro
 
-//TODO: In edit workout screen plus button should move up with keyboard
+//TODO: There is a bug in the player where the first instruction is
+//      played late, proboby from the time it takes to init text to speach
+
+//TODO: We need some indication that its another reps
+
+//TODO: Should make the whole image a click control to select a new image or video not just the icon
+
+//TODO: Some global exercise settings. like auto say next rep, timer beep sounds, auto intro exerise screen
 
 //TODO: Add a list of materials like a band or whatever else you need to the workout and each
 //      exercise screen

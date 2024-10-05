@@ -2,13 +2,16 @@ package com.catglo.openphysicaltherapy.WorkoutPlayer
 
 import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -73,14 +76,26 @@ fun PlayExerciseView(exerciseToPlay: String,
         Box(modifier = Modifier.fillMaxSize()) {
             Column {
                 Spacer(modifier = Modifier.height(20.dp))
-                Box(
-                    Modifier
-                        .padding(top = 20.dp)
-                        .height(70.dp)) {
+                Row(Modifier.fillMaxWidth()) {
+                    Box(modifier = Modifier
+                       // .align(Alignment.BottomStart)
+                        .padding(start = 30.dp, bottom = 10.dp, top = 12.dp)) {
+                        CircleSegmentCounter(
+                            numberOfArcSegments = viewModel.totalNumberOfReps,
+                            numberOfHighlightedSegments = viewModel.repsCountdownValue,
+                            boxSize = 58.dp,
+                            strokeWidth = 15f,
+                            direction = RIGHT)
+                        Text(text = "${viewModel.totalNumberOfReps-viewModel.repsCountdownValue+1}/${viewModel.totalNumberOfReps}",
+                            modifier = Modifier.align(Alignment.Center),
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+
                     if (viewModel.getSlide().countdown) {
                         Box(
-                            Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
+                            Modifier.size(70.dp), contentAlignment = Alignment.Center
                         ) {
                             Image(
                                 painterResource(R.drawable.stopwatch),
@@ -89,7 +104,7 @@ fun PlayExerciseView(exerciseToPlay: String,
                                 modifier = Modifier.fillMaxSize()
                             )
                             if ((countdownValue.value ?: 0) <= 5) {
-                                Box(modifier = Modifier.padding(top=13.dp)) {
+                                Box(modifier = Modifier.padding(top = 13.dp)) {
                                     CircleSegmentCounter(
                                         numberOfArcSegments = 5,
                                         numberOfHighlightedSegments = countdownValue.value ?: 0,
@@ -97,7 +112,7 @@ fun PlayExerciseView(exerciseToPlay: String,
                                         strokeWidth = 10f,
                                         arcColorToDo = Color.Black,
                                         arcColorDone = Color.White,
-                                        gap=5
+                                        gap = 5
                                     )
                                 }
                             }
@@ -108,9 +123,12 @@ fun PlayExerciseView(exerciseToPlay: String,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
                                     .padding(start = 16.dp, top = 25.dp, end = 16.dp, bottom = 16.dp)
-                                    .width(50.dp))
+                                    .width(50.dp)
+                            )
                         }
+                        Spacer(modifier = Modifier.width(20.dp))
                     }
+
                 }
                 Spacer(modifier = Modifier.height(20.dp))
                 Box {
@@ -155,19 +173,7 @@ fun PlayExerciseView(exerciseToPlay: String,
                     fontSize = 20.sp,
                 )
             }
-            Box(modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = 20.dp, bottom = 10.dp)) {
-                CircleSegmentCounter(
-                    numberOfArcSegments = viewModel.totalNumberOfReps,
-                    numberOfHighlightedSegments = viewModel.repsCountdownValue,
-                    boxSize = 70.dp,
-                    direction = RIGHT)
-                Text(text = "${viewModel.totalNumberOfReps-viewModel.repsCountdownValue+1}/${viewModel.totalNumberOfReps}",
-                    modifier = Modifier.align(Alignment.Center),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold)
-            }
+
         }
     }
 }
